@@ -32,7 +32,7 @@ def index():
 @bluePrint.route("/favicon.ico")
 def favicon():
     # https://stackoverflow.com/questions/48863061/favicon-ico-results-in-404-error-in-flask-app
-    
+
     send_from_directory(
         directory="/home/flask_skipod/app/static",
         filename="favicon.ico",
@@ -252,12 +252,14 @@ def upload_task():
                 + graph_output_dirs
             )
             os.system(os_command)
-#             
+            #
             # сохранение таска в бд
             current_user.task_file = form.file_data.data.filename
             dataBase.session.commit()
-            
-            # algoview 2.0
+
+            # =========================================================
+            #                       algoview 2.0
+            # =========================================================
 
             # новый архитектор
             # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
@@ -266,6 +268,15 @@ def upload_task():
 
             # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
             # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
+
+            # =========================================================
+            #    если загрузили сразу .json файл (дебаг C++ скрипта)
+            # =========================================================
+
+            # print(f"\n>>>>>>>>>>>> {graph_config_file.endswith(".json")}\n")
+
+            if graph_config_file.endswith(".json"):
+                cpp_output_file_path = graph_config_file
 
             os_command_new_py = (
                 "python3 "
@@ -284,8 +295,12 @@ def upload_task():
 
         # Всё необходимое создано, возвращаемся на страницу пользователя
         user = User.query.filter_by(username=current_user.username).first_or_404()
-        return render_template("user.html", title="Моя страница", user=user, graph_name=graph_name)
-    return render_template('upload_task.html', title='Загрузка задания', form=form)
+        return render_template(
+            "user.html", title="Моя страница", user=user, graph_name=graph_name
+        )
+    return render_template("upload_task.html", title="Загрузка задания", form=form)
+
+
 # >>>>>>> main
 
 
@@ -304,14 +319,16 @@ def receive_task():
         bytes_data = os.read(fd, 16384)
         form.task_code.data = bytes_data.decode("utf-8")
         # Получаем xml-код пользователя
-# <<<<<<< new_core
-#         fd = os.open(
-#             cur_abs_path + usr_tsk_path + "/" + request.args.get("graph_name"),
-#             os.O_RDONLY,
-#         )
-# =======
-        fd = os.open(cur_abs_path + usr_tsk_path + '/' + current_user.task_file, os.O_RDONLY)
-# >>>>>>> main
+        # <<<<<<< new_core
+        #         fd = os.open(
+        #             cur_abs_path + usr_tsk_path + "/" + request.args.get("graph_name"),
+        #             os.O_RDONLY,
+        #         )
+        # =======
+        fd = os.open(
+            cur_abs_path + usr_tsk_path + "/" + current_user.task_file, os.O_RDONLY
+        )
+        # >>>>>>> main
         bytes_data = os.read(fd, 16384)
         xml_code = bytes_data.decode("utf-8")
     # Настройка пути к визуализационной странице и рендер всего ресурса

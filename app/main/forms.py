@@ -27,7 +27,10 @@ class EditProfileForm(FlaskForm):
 class TaskSubmitForm(FlaskForm):
     task_code = TextAreaField('Комментарий к заданию', validators=[Length(min=0, max=16384)])
     file_data = FileField('Загрузить описание графа',
-                          validators=[FileRequired(), FileAllowed(['xml'], 'Только XML-описания!')])
+                          validators=[FileRequired(), 
+                                      FileAllowed(['xml', "json"], 'Только XML-описания!')
+                                      ]) # json для дебага C++ скрипта
+    
     submit = SubmitField('Сгенерировать')
 
     def __init__(self, *args, **kwargs):
