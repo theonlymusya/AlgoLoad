@@ -1,6 +1,7 @@
 *_ignore
 *_old
-logs
+# logs
+*.log.*
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,macos,linux,windows,pycharm,c++,node,flask
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,macos,linux,windows,pycharm,c++,node,flask

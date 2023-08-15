@@ -13,8 +13,8 @@ from flask_bootstrap import Bootstrap
 dataBase = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
-login.login_view = 'auth.login_usr'
-login.login_message = 'Sign in or register to access'
+login.login_view = "auth.login_usr"
+login.login_message = "Sign in or register to access"
 bootstrap = Bootstrap()
 
 
@@ -29,55 +29,70 @@ def create_app(config_class=Config):
     bootstrap.init_app(app_flask)
 
     from app.errors import bluePrint as errors_BP
+
     app_flask.register_blueprint(errors_BP)
 
     from app.auth import bluePrint as auth_BP
+
     app_flask.register_blueprint(auth_BP)
 
     from app.main import bluePrint as main_BP
+
     app_flask.register_blueprint(main_BP)
 
     from app.admin import bluePrint as admin_BP
+
     app_flask.register_blueprint(admin_BP)
 
     from app.teacher import bluePrint as teacher_BP
+
     app_flask.register_blueprint(teacher_BP)
 
     # Настройка регистратора электронной почты
     if not app_flask.debug:
-        if app_flask.config['MAIL_SERVER']:
+        if app_flask.config["MAIL_SERVER"]:
             auth = None
-            if app_flask.config['MAIL_USERNAME'] or app_flask.config['MAIL_PASSWORD']:
-                auth = (app_flask.config['MAIL_USERNAME'], app_flask.config['MAIL_PASSWORD'])
+            if app_flask.config["MAIL_USERNAME"] or app_flask.config["MAIL_PASSWORD"]:
+                auth = (
+                    app_flask.config["MAIL_USERNAME"],
+                    app_flask.config["MAIL_PASSWORD"],
+                )
             secure = None
-            if app_flask.config['MAIL_USE_TLS']:
+            if app_flask.config["MAIL_USE_TLS"]:
                 secure = ()
             mail_handler = SMTPHandler(
-                mailhost=(app_flask.config['MAIL_SERVER'], app_flask.config['MAIL_PORT']),
-                fromaddr='no-reply@' + app_flask.config['MAIL_SERVER'],
-                toaddrs=app_flask.config['ADMINS'],
-                subject='Microbial failure',
+                mailhost=(
+                    app_flask.config["MAIL_SERVER"],
+                    app_flask.config["MAIL_PORT"],
+                ),
+                fromaddr="no-reply@" + app_flask.config["MAIL_SERVER"],
+                toaddrs=app_flask.config["ADMINS"],
+                subject="Microbial failure",
                 credentials=auth,
-                secure=secure
+                secure=secure,
             )
             mail_handler.setLevel(logging.ERROR)
             app_flask.logger.addHandler(mail_handler)
 
     # Настройка журналирования ошибок в файлы
     if not app_flask.debug:
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
         # Заводим новый лог-файл
-        file_handler = RotatingFileHandler('logs/microbial.log', maxBytes=65536, backupCount=10)
+        file_handler = RotatingFileHandler(
+            "logs/microbial.log", maxBytes=65536, backupCount=10
+        )
         file_handler.setFormatter(
-            logging.Formatter('%(asctime)s %(levelname)s:'
-                              ' %(message)s [int %(pathname)s:%(lineno)d]')
+            logging.Formatter(
+                "%(asctime)s %(levelname)s:"
+                " %(message)s [int %(pathname)s:%(lineno)d]"
+            )
         )
         file_handler.setLevel(logging.INFO)
         # Настраиваем приложение на его использование
         app_flask.logger.addHandler(file_handler)
         app_flask.logger.setLevel(logging.INFO)
-        app_flask.logger.info('Microbial startup')
+        app_flask.logger.info("Microbial startup")
 
     return app_flask
 

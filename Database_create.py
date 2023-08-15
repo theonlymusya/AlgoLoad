@@ -25,8 +25,10 @@ txt_pass_count = 12
 new_user_count = 255
 
 for i in range(0, new_user_count):
-    usr_name = 'ucmc2020ss' + format(i, '03d')
-    txt_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=txt_pass_count))
+    usr_name = "ucmc2020ss" + format(i, "03d")
+    txt_pass = "".join(
+        random.choices(string.ascii_letters + string.digits, k=txt_pass_count)
+    )
     usr_list.write(usr_name + " : " + txt_pass + "\n")
 
     # It works correctly but further investigation on what's going on required.
@@ -37,11 +39,3 @@ for i in range(0, new_user_count):
 dataBase.session.commit()
 new_usrs = User.query.all()
 print(new_usrs)
-
-
-
-
-
-
-
-
