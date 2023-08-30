@@ -24,7 +24,7 @@ WORKDIR /home/flask_skipod
 #     app.db flask_skipod.py config.py Folders_create.py boot.sh ./
 COPY --chown=flask_skipod:flask_skipod app app
 COPY --chown=flask_skipod:flask_skipod scripts scripts
-COPY --chown=flask_skipod:flask_skipod architect architect
+# COPY --chown=flask_skipod:flask_skipod architect architect
 COPY --chown=flask_skipod:flask_skipod architect_new architect_new
 COPY --chown=flask_skipod:flask_skipod migrations migrations
 COPY --chown=flask_skipod:flask_skipod logs logs
@@ -34,7 +34,7 @@ COPY --chown=flask_skipod:flask_skipod requirements.txt flask_skipod.py config.p
 #COPY --chown=flask_skipod:flask_skipod requirements.txt app.db flask_skipod.py config.py Folders_create.py boot.sh ./
 
 
-RUN chmod -R 777 app scripts architect architect_new migrations logs new_user_folder\
+RUN chmod -R 777 app scripts architect_new migrations logs new_user_folder\
     flask_skipod.py config.py Folders_create.py boot.sh
 #!    app.db flask_skipod.py config.py Folders_create.py boot.sh
 

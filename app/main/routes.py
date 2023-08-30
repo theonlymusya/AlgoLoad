@@ -220,42 +220,42 @@ def upload_task():
             # В сети предлагают чекать имя файла через werkzeug, чего я сделать не могу из-за отсутствия в werkzeug этой функции
             graph_name = form.file_data.data.filename
             form.file_data.data.save(cur_abs_path + usr_tsk_path + "/" + graph_name)
-            # Найдём xml-ник соответствующего юзверя и его папку для JSON-моделей
-            graph_appgen_path = cur_abs_path + "/architect/architect"
-            graph_config_file = (
-                cur_abs_path + usr_tsk_path + "/" + graph_name
-            )  # путь к xml конфигу
+
+            # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
+            graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
             graph_output_dirs = cur_abs_path + usr_pge_path + "/Json_models"
 
-            # Нужно снести все старые данные юзверя
-            try:
-                os.remove(os.path.join(graph_output_dirs, "Fl*"))
-            except OSError:
-                pass
-            try:
-                os.remove(os.path.join(graph_output_dirs, "Op*"))
-            except OSError:
-                pass
-            try:
-                os.remove(os.path.join(graph_output_dirs, "Page*"))
-            except OSError:
-                pass
+            # =========================================================
+            #                       algoview 1.0 old
+            # =========================================================
 
-            # Запуск архитектора (!!! TODO: удалить все старое)
-            os_command = (
-                graph_appgen_path
-                + " "
-                + "1"
-                + " "
-                + graph_config_file
-                + " "
-                + graph_output_dirs
-            )
-            os.system(os_command)
-            #
-            # сохранение таска в бд
-            current_user.task_file = form.file_data.data.filename
-            dataBase.session.commit()
+            # # Нужно снести все старые данные юзверя
+            # try:
+            #     os.remove(os.path.join(graph_output_dirs, "Fl*"))
+            # except OSError:
+            #     pass
+            # try:
+            #     os.remove(os.path.join(graph_output_dirs, "Op*"))
+            # except OSError:
+            #     pass
+            # try:
+            #     os.remove(os.path.join(graph_output_dirs, "Page*"))
+            # except OSError:
+            #     pass
+
+            # graph_appgen_path = cur_abs_path + "/architect/architect"
+
+            # # Запуск архитектора (!!! TODO: удалить все старое)
+            # os_command = (
+            #     graph_appgen_path
+            #     + " "
+            #     + "1"
+            #     + " "
+            #     + graph_config_file
+            #     + " "
+            #     + graph_output_dirs
+            # )
+            # os.system(os_command)
 
             # =========================================================
             #                       algoview 2.0
@@ -264,7 +264,8 @@ def upload_task():
             # новый архитектор
             graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
             os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
-            cpp_output_file_path = cur_abs_path + "/output.json" # !!! TODO: сохраняется не там где надо
+            # !!! TODO: сохраняется не там где надо
+            cpp_output_file_path = cur_abs_path + "/output.json"
 
             # скрипт по перводу json в js
             graph_appgen_path_new_py = cur_abs_path + "/scripts/json2js.py"
@@ -273,14 +274,15 @@ def upload_task():
             #    если загрузили сразу .json файл (дебаг C++ скрипта)
             # =========================================================
 
-            print(f"\n>>>>>>>>>>>> {graph_config_file.endswith('.json')}\n")
+            # print(f"\n>>>>>>>>>>>> {graph_config_file.endswith('.json')}\n")
 
             if graph_config_file.endswith(".json"):
+                print(f"\n>>>>>>>>>>>> загрузили .json")
                 cpp_output_file_path = graph_config_file
             else:
-                # архитектр сохраняет результат не там где надо, 
+                # архитектр сохраняет результат не там где надо,
                 # поэтому потом дополнительно переносим файл
-                
+
                 print(f"\n>>>>>>>>>>>> run {os_command_new_cpp}")
                 os.system(os_command_new_cpp)
 
@@ -292,15 +294,20 @@ def upload_task():
                 + " "
                 + graph_output_dirs
                 + "/jsonGraphData.js"
-            )  # работает
-            
+            )
+
             os.system(os_command_new_py)
+
+            # сохранение таска в бд
+            current_user.task_file = form.file_data.data.filename
+            dataBase.session.commit()
 
         # Всё необходимое создано, возвращаемся на страницу пользователя
         user = User.query.filter_by(username=current_user.username).first_or_404()
         return render_template(
             "user.html", title="Моя страница", user=user, graph_name=graph_name
         )
+
     return render_template("upload_task.html", title="Загрузка задания", form=form)
 
 
