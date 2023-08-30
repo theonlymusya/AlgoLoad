@@ -15,7 +15,8 @@ class Params {
     constructor() {
         this.pause = false;
         this.autoRotate = false;
-        this.showSystemLoadInformation = true;
+        this.showSystemLoadInfo = true;
+        this.showGraphInfo = true;
 
         this.fpsRate = 30;
         this.lineWidth = 4;
@@ -41,7 +42,7 @@ class AlgoViewСonfiguration {
     }
 
     configuringThreeJS() {
-        this.container = document.getElementById("container_new");
+        this.container = document.getElementById("container");
         this.scene = new THREE.Scene();
 
         this.camera = this.createCamera();
@@ -159,7 +160,7 @@ class AlgoViewСonfiguration {
     }
 
     /** Настройка GUI */
-    setupGUI() {
+    setupGUI(graphInfo) {
         // https://stackoverflow.com/questions/38762124/how-to-add-folders-in-dat-gui
 
         this.gui = new dat.GUI();
@@ -182,9 +183,19 @@ class AlgoViewСonfiguration {
             controllerContextTrans.setNewCamera();
         };
 
-        // const setXYView = function () {
-        //     thisContextTrans.setXYView();
-        // };
+        const changeCharacteristicsBlock = function () {
+            if (thisContextTrans.params.showGraphInfo) {
+                Controller.changeCharacteristicsBlock(graphInfo);
+            } else {
+                Controller.changeCharacteristicsBlock(null);
+            }
+        };
+
+        const changeInfoBlock = function () {
+            if (thisContextTrans.params.showSystemLoadInfo == false) {
+                Controller.changeInfoBlock("", "");
+            }
+        };
 
         /**     ================
          *        View Settins
@@ -199,11 +210,14 @@ class AlgoViewСonfiguration {
             .onChange(rebuildSceneCallback);
 
         folderViewSettins
-            .add(this.params, "showSystemLoadInformation")
+            .add(this.params, "showSystemLoadInfo")
             .name("Show load info")
-            .onChange(function () {
-                changeInfoBlock("", "");
-            });
+            .onChange(changeInfoBlock);
+
+        folderViewSettins
+            .add(this.params, "showGraphInfo")
+            .name("Show graph info")
+            .onChange(changeCharacteristicsBlock);
 
         /**     ===================
          *        Camera Controls
@@ -387,32 +401,60 @@ class Graph {
     }
 }
 
-/** Набор инструментов создания графических объектов. */
-class GraphicObjects {
-    static #createMeshLineByGeo(geo, colorIndex) {
-        const meshLine = new MeshLine();
-        meshLine.setGeometry(geo);
+/** Модель с данными о графе, предупреждениями и ошибками*/
+class GraphInfo {
+    characteristics = new Object();
+    warnings = new Array();
+    errors = new Array();
 
-        const material = new MeshLineMaterial({
-            useMap: false,
-            color: new THREE.Color(colors[colorIndex]),
-            opacity: 1,
-            resolution: config.resolution,
-            sizeAttenuation: false,
-            lineWidth: config.params.lineWidth,
-        });
+    /** Маркер наличия проблем */
+    thereAreErrorsOrWarnings = false;
 
-        const mesh = new THREE.Mesh(meshLine.geometry, material);
-        config.graph.add(mesh);
+    constructor(graphData) {
+        this.graphData = graphData;
+
+        this.fillInCharacteristics();
+        this.fillInWarnings();
+        this.fillInErrors();
+
+        if (this.warnings.length != 0 || this.errors.length != 0) {
+            this.thereAreErrorsOrWarnings = true;
+        }
     }
 
-    static #createMeshLine(sourceVector3, targetVector3, colorIndex) {
-        const line = new THREE.Geometry();
-        line.vertices.push(sourceVector3);
-        line.vertices.push(targetVector3);
+    fillInCharacteristics() {
+        // characteristics:
+        //      vertex_num
+        //      edge_num
+        //      critical_length
+        //      width
 
+        for (const property in this.graphData.characteristics) {
+            this.characteristics[property] =
+                this.graphData.characteristics[property];
+        }
+    }
+
+    fillInWarnings() {
+        for (let i = 0; i < this.graphData.warnings.length; i++) {
+            const warningStr = this.graphData.warnings[i];
+            this.warnings.push(warningStr);
+        }
+    }
+
+    fillInErrors() {
+        for (let i = 0; i < this.graphData.errors.length; i++) {
+            const errorStr = this.graphData.errors[i];
+            this.errors.push(errorStr);
+        }
+    }
+}
+
+/** Набор инструментов создания графических объектов. */
+class GraphicObjects {
+    static #createMeshLineByGeo(lineGeometry, colorIndex) {
         const meshLine = new MeshLine();
-        meshLine.setGeometry(line);
+        meshLine.setGeometry(lineGeometry);
 
         const material = new MeshLineMaterial({
             useMap: false,
@@ -428,7 +470,7 @@ class GraphicObjects {
     }
 
     /** супер простая линия если понадобится */
-    static #createSimpleLine(sourceVector3, targetVector3, colorIndex) {
+    static #createSimpleStraightLine(sourceVector3, targetVector3, colorIndex) {
         const geometry = new THREE.Geometry();
         geometry.vertices.push(sourceVector3);
         geometry.vertices.push(targetVector3);
@@ -439,109 +481,206 @@ class GraphicObjects {
         config.graph.add(line);
     }
 
-    /**
-     * Создает линию
-     * @param {THREE.Vector3} sourceVector3 вектор исходящей точки
-     * @param {THREE.Vector3} targetVector3 вектор целевой точки
-     * @param {number} colorIndex индекс в цветовом массиве
-     */
-    static createLine(sourceVector3, targetVector3, colorIndex) {
-        this.#createMeshLine(sourceVector3, targetVector3, colorIndex);
-        // this.createSimpleLine(sourceVector3, targetVector3, colorIndex);
+    static #createStraightMeshLine(sourceVector3, targetVector3, colorIndex) {
+        const lineGeometry = new THREE.Geometry();
+        lineGeometry.vertices.push(sourceVector3);
+        lineGeometry.vertices.push(targetVector3);
+
+        this.#createMeshLineByGeo(lineGeometry, colorIndex);
     }
 
-    /** Создает сферу по заданным координатам */
-    static createSphere(x, y, z, colorIndex = 1, sphereRadius = 2) {
-        // const sphereRadius = 2;
-        const sphereWidthDivisions = 16;
-        const sphereHeightDivisions = 16;
-        const sphereGeo = new THREE.SphereGeometry(
-            sphereRadius,
-            sphereWidthDivisions,
-            sphereHeightDivisions
-        );
-
-        const sphereMat = new THREE.MeshPhongMaterial({
-            color: colors[colorIndex],
-        });
-
-        const mesh = new THREE.Mesh(sphereGeo, sphereMat);
-        mesh.position.set(x, y, z);
-        config.graph.add(mesh);
-    }
-
-    /** Создает куб по заданным координатам */
-    static createCube(x, y, z, colorIndex = 1) {
-        const cubeSize = 2;
-        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-
-        // const cubeMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
-        const cubeMat = new THREE.MeshPhongMaterial({
-            color: colors[colorIndex],
-        });
-
-        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
-        mesh.position.set(x, y, z);
-        config.graph.add(mesh);
-    }
-
-    /** Создает октаэдр по заданным координатам */
-    static createOctahedron(x, y, z, colorIndex) {
-        // https://threejs.org/docs/#api/en/geometries/OctahedronGeometry
-
-        const octahedronRadius = 1.8;
-        const octahedronGeo = new THREE.OctahedronGeometry(octahedronRadius);
-        const octahedronMat = new THREE.MeshPhongMaterial({
-            color: colors[colorIndex],
-        });
-
-        const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
-        mesh.position.set(x, y, z);
-        config.graph.add(mesh);
-    }
-
-    /** Создает стрелку по двум векторам */
-    static createArrow(sourceVector3, targetVector3, colorIndex = 3) {
-        const arrowVector3 = new THREE.Vector3(
-            targetVector3.x - sourceVector3.x,
-            targetVector3.y - sourceVector3.y,
-            targetVector3.z - sourceVector3.z
-        );
-
+    /** Создает прямую стрелку по двум векторам */
+    static createStraightArrow(sourceVector3, targetVector3, colorIndex = 3) {
         /** Половина высоты конуса у стрелки + радиус большого шара */
-        const shiftLength = 1.8 / 2 + 1.8;
-        const arrowNormalizeVector3 = arrowVector3.normalize();
-        const shiftVector3 = new THREE.Vector3(
-            arrowNormalizeVector3.x * shiftLength,
-            arrowNormalizeVector3.y * shiftLength,
-            arrowNormalizeVector3.z * shiftLength
+        const arrowShiftLength = 1.8 / 2 + 1.8;
+
+        const arrowVector3 = new THREE.Vector3().subVectors(
+            targetVector3,
+            sourceVector3
         );
 
-        const croppedTargetVector3 = new THREE.Vector3(
-            targetVector3.x - shiftVector3.x,
-            targetVector3.y - shiftVector3.y,
-            targetVector3.z - shiftVector3.z
+        /** Получаем отступ от целевой вершины для создания острия стрелки */
+        const shiftVector3 = new THREE.Vector3()
+            .copy(arrowVector3)
+            .normalize() // нормализация (приведение к вектору длины 1)
+            .multiplyScalar(arrowShiftLength); // + умножение на скаляр
+
+        const croppedTargetVector3 = new THREE.Vector3().subVectors(
+            targetVector3,
+            shiftVector3
         );
 
         // линия
-        this.createLine(sourceVector3, croppedTargetVector3, colorIndex);
+        this.#createStraightMeshLine(
+            sourceVector3,
+            croppedTargetVector3,
+            colorIndex
+        );
 
         // конус
+        this.#createCone(croppedTargetVector3, targetVector3, colorIndex);
+    }
+
+    /** https://www.notion.so/2ad0489562bc43b8a76345d4feda84ba */
+    static #getTransitionMatrixToInitialBasis(arrowVector3) {
+        /** Вектора нового базиса (соотв изначальному графу) */
+        const n1 = new THREE.Vector3().copy(arrowVector3).normalize();
+        const n2 = new THREE.Vector3();
+        const n3 = new THREE.Vector3();
+
+        /** функция векторного произведения векторов */
+        function cross(a, b) {
+            const rx = a.y * b.z - a.z * b.y;
+            const ry = a.z * b.x - a.x * b.z;
+            const rz = a.x * b.y - a.y * b.x;
+            return new THREE.Vector3(rx, ry, rz);
+        }
+
+        // геометрически рассчитываем второй базисный вектор n2
+
+        if (n1.x != 0 && n1.y == 0 && n1.z == 0) {
+            // ось OX
+            console.log("ось OX");
+            n2.set(0, -1, -1).normalize();
+        } else if (n1.x == 0 && n1.y != 0 && n1.z == 0) {
+            // ось OY
+            console.log("ось OY");
+            n2.set(-1, 0, -1).normalize();
+        } else if (n1.x == 0 && n1.y == 0 && n1.z != 0) {
+            // ось OZ
+            console.log("ось OZ");
+            n2.set(-1, -1, 0).normalize();
+        } else if (n1.x != 0 && n1.y != 0 && n1.z == 0) {
+            // плоскость OXY
+            console.log("плоскость OXY");
+            n2.set(0, 0, -1);
+        } else if (n1.x == 0 && n1.y != 0 && n1.z != 0) {
+            // плоскость OYZ
+            console.log("плоскость OYZ");
+            n2.set(-1, 0, 0);
+        } else if (n1.x != 0 && n1.y == 0 && n1.z != 0) {
+            // плоскость OXZ
+            console.log("плоскость OXZ");
+            n2.set(0, -1, 0);
+        } else {
+            // Общий случай
+            console.log("Общий случай");
+
+            const n1x = Math.abs(n1.x);
+            const n1y = Math.abs(n1.y);
+            const n1z = Math.abs(n1.z);
+
+            const beta = Math.PI / 2 - Math.asin(n1y / 1);
+            const b = n1y / Math.tan(beta);
+
+            const gamma = Math.atan(n1z / n1x);
+            const n2x = b * Math.cos(gamma) * Math.sign(n1.x);
+            const n2z = b * Math.sin(gamma) * Math.sign(n1.z);
+
+            console.log("beta =", (beta * 180) / Math.PI);
+            console.log("b =", b);
+            console.log("gamma =", (gamma * 180) / Math.PI);
+
+            n2.set(-n2x, n1.y, -n2z).normalize();
+        }
+
+        // рассчитываем третий базисный вектор n3
+        n3.copy(cross(n1, n2));
+
+        console.log("n1:", n1.x, n1.y, n1.z);
+        console.log("n2:", n2.x, n2.y, n2.z);
+        console.log("n3:", n3.x, n3.y, n3.z);
+        console.log("\n");
+
+        const M = [
+            [n1.x, n2.x, n3.x],
+            [n1.y, n2.y, n3.y],
+            [n1.z, n2.z, n3.z],
+        ];
+
+        return M;
+    }
+
+    /** Создает кривую стрелку по двум векторам */
+    static createCurvedArrow(sourceVector3, targetVector3, colorIndex = 3) {
+        /** Половина высоты конуса у стрелки + радиус большого шара */
+        const arrowShiftLength = 1.8 / 2 + 1.8;
+
+        const arrowVector3 = new THREE.Vector3().subVectors(
+            targetVector3,
+            sourceVector3
+        );
+
+        /** длина вектора. Рассмотрим вектор AB{len, 0, 0},
+         *  исходящий из начала координат */
+        const len = sourceVector3.distanceTo(targetVector3);
+
+        /** радиус окружности */
+        const r = len * 1.1;
+
+        /** координаты центра окружности */
+        const x0 = len / 2;
+        const y0 = -Math.sqrt(Math.pow(r, 2) - Math.pow(x0, 2));
+
+        const x = (t) => x0 + r * Math.cos(t);
+        const y = (t) => y0 + r * Math.sin(t);
+
+        /** границы параметра */
+        const tArrowShift = arrowShiftLength / r; // tArrowShift = 2pi * shiftLength / 2piR
+        const t0 = Math.acos(x0 / r) + tArrowShift; // находится некотором удалении от точки B
+        const t1 = Math.PI - Math.acos(x0 / r); // находится в точке A
+
+        /** количество кусочков на которое будет разбита кривая */
+        const n = Math.ceil((t1 - t0) * r * 3);
+        const tStep = (t1 - t0) / n;
+
+        const mTrans = this.#getTransitionMatrixToInitialBasis(arrowVector3);
+        const lineGeometry = new Float32Array((n + 1) * 3);
+
+        for (let j = 0; j <= n; j += 1) {
+            const t = t0 + tStep * j;
+            const _x = x(t);
+            const _y = y(t);
+
+            lineGeometry[j * 3] =
+                sourceVector3.x + mTrans[0][0] * _x + mTrans[0][1] * _y;
+            lineGeometry[j * 3 + 1] =
+                sourceVector3.y + mTrans[1][0] * _x + mTrans[1][1] * _y;
+            lineGeometry[j * 3 + 2] =
+                sourceVector3.z + mTrans[2][0] * _x + mTrans[2][1] * _y;
+        }
+
+        // линия
+        this.#createMeshLineByGeo(lineGeometry, colorIndex);
+
+        const coneLocation = new THREE.Vector3(
+            lineGeometry[0],
+            lineGeometry[1],
+            lineGeometry[2]
+        );
+
+        // конус
+        this.#createCone(coneLocation, targetVector3, colorIndex);
+    }
+
+    /** Создает конус по заданным координатам и направдлению вершины конуса */
+    static #createCone(locationVector3, targetVector3, colorIndex) {
         const coneMesh = this.#getConeMesh(colorIndex);
         coneMesh.rotation.x = Math.PI / 2;
 
         const cone = new THREE.Object3D();
         cone.add(coneMesh);
         cone.position.set(
-            croppedTargetVector3.x,
-            croppedTargetVector3.y,
-            croppedTargetVector3.z
+            locationVector3.x,
+            locationVector3.y,
+            locationVector3.z
         );
 
         cone.lookAt(targetVector3.x, targetVector3.y, targetVector3.z);
         config.graph.add(cone);
     }
 
+    /** Возвращает THREE.Mesh для конуса */
     static #getConeMesh(colorIndex = 3) {
         // конус
         // https://customizer.github.io/three.js-doc.ru/geometries/coneBufferGeometry.htm
@@ -573,17 +712,17 @@ class GraphicObjects {
      * @param {number} oxAxisLength
      */
     static createAxis(oxAxisLength, oyAxisLength, ozAxisLength) {
-        this.createArrow(
+        this.createStraightArrow(
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(oxAxisLength, 0, 0)
         );
 
-        this.createArrow(
+        this.createStraightArrow(
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, oyAxisLength, 0)
         );
 
-        this.createArrow(
+        this.createStraightArrow(
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, 0, ozAxisLength)
         );
@@ -658,6 +797,56 @@ class GraphicObjects {
 
         return light;
     }
+
+    /** Создает сферу по заданным координатам */
+    static createSphere(x, y, z, colorIndex = 1, sphereRadius = 2) {
+        // const sphereRadius = 2;
+        const sphereWidthDivisions = 16;
+        const sphereHeightDivisions = 16;
+        const sphereGeo = new THREE.SphereGeometry(
+            sphereRadius,
+            sphereWidthDivisions,
+            sphereHeightDivisions
+        );
+
+        const sphereMat = new THREE.MeshPhongMaterial({
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает куб по заданным координатам */
+    static createCube(x, y, z, colorIndex = 1) {
+        const cubeSize = 2;
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+
+        // const cubeMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const cubeMat = new THREE.MeshPhongMaterial({
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает октаэдр по заданным координатам */
+    static createOctahedron(x, y, z, colorIndex) {
+        // https://threejs.org/docs/#api/en/geometries/OctahedronGeometry
+
+        const octahedronRadius = 1.8;
+        const octahedronGeo = new THREE.OctahedronGeometry(octahedronRadius);
+        const octahedronMat = new THREE.MeshPhongMaterial({
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
 }
 
 /** Модель загрузки данных. */
@@ -665,11 +854,12 @@ class DataLoader {
     static emptyGraphDataTemplate = { vertices: [], edges: [] };
 
     constructor() {
-        this.graphData = this.emptyGraphDataTemplate;
+        this.graphData = DataLoader.emptyGraphDataTemplate;
     }
 
     loadGraphData() {
         // jsonGraphData загружена в html страничке
+        // !!!
         this.graphData = JSON.parse(jsonGraphData);
 
         return this.graphData;
@@ -684,7 +874,9 @@ class Model {
     constructor() {
         const dataLoader = new DataLoader();
         this.graphData = dataLoader.loadGraphData();
+
         this.graph = new Graph(this.graphData);
+        this.graphInfo = new GraphInfo(this.graphData);
     }
 }
 
@@ -820,7 +1012,8 @@ class View {
      * @param {Edge} edge - ребро, экземпляр класса `Edge`.
      */
     buildEdgeObject(edge) {
-        GraphicObjects.createArrow(
+        // !!!
+        GraphicObjects.createCurvedArrow(
             edge.sourceVertex.pos,
             edge.targetVertex.pos,
             6
@@ -854,6 +1047,52 @@ class Controller {
 
     autoRotateGraph() {
         config.rotateGraphByClock();
+    }
+
+    static changeCharacteristicsBlock(graphInfo) {
+        let content = "";
+
+        if (graphInfo != null) {
+            const info = graphInfo.characteristics;
+            const warnings = graphInfo.warnings;
+            const errors = graphInfo.errors;
+
+            let text = "<b><i>Graph characteristics:</i></b><br>";
+            text += "• vertex num: " + info.vertex_num + "<br>";
+            text += "• edge num: " + info.edge_num + "<br>";
+            text += "• critical length: " + info.critical_length + "<br>";
+            text += "• width: " + info.width + "<br>";
+
+            if (warnings.length != 0) {
+                text += "<br><b><i>Warnings:</i></b><br>";
+
+                for (let i = 0; i < warnings.length; i++) {
+                    const num = i + 1;
+                    text += num + ": " + warnings[i] + "<br>";
+                }
+            }
+
+            if (errors.length != 0) {
+                text += "<br><b><i>Errors:</i></b><br>";
+
+                for (let i = 0; i < errors.length; i++) {
+                    const num = i + 1;
+                    text += num + ": " + errors[i] + "<br>";
+                }
+            }
+
+            content = text; //"<h4>" + text + "</h4>";
+        }
+
+        document.getElementById("textInfoBlock_0").innerHTML = content;
+    }
+
+    static changeInfoBlock(text1, text2) {
+        const content1 = "<h4>" + text1 + "</h4>";
+        const content2 = "<h4>" + text2 + "</h4>";
+
+        document.getElementById("textInfoBlock_1").innerHTML = content1;
+        document.getElementById("textInfoBlock_2").innerHTML = content2;
     }
 }
 
@@ -894,17 +1133,14 @@ class App {
 
         config.setControllerContext(this.controller);
         // this.appManager.setDoneBuildStatus();
-        this.appManager.buildStatus = "done";
-        config.setupGUI();
+        // this.appManager.buildStatus = "done";
+
+        config.setupGUI(this.model.graphInfo);
+
+        if (config.params.showGraphInfo) {
+            Controller.changeCharacteristicsBlock(this.model.graphInfo);
+        }
     }
-}
-
-function changeInfoBlock(text1, text2) {
-    const content1 = "<h4>" + text1 + "</h4>";
-    const content2 = "<h4>" + text2 + "</h4>";
-
-    document.getElementById("textInfoBlock_1").innerHTML = content1;
-    document.getElementById("textInfoBlock_2").innerHTML = content2;
 }
 
 function sleep(ms) {
@@ -1020,8 +1256,8 @@ async function renderLoop() {
 
     fpsManager.addFpsValue(fps);
     fpsManager.addRenderTimeValue(renderTime);
-    if (config.params.showSystemLoadInformation) {
-        changeInfoBlock(
+    if (config.params.showSystemLoadInfo) {
+        Controller.changeInfoBlock(
             fpsManager.getFpsInfoStr(),
             fpsManager.getRenderTimeInfoStr()
         );
