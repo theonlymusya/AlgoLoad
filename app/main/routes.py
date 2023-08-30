@@ -241,7 +241,7 @@ def upload_task():
             except OSError:
                 pass
 
-            # Запуск архитектора
+            # Запуск архитектора (!!! TODO: удалить все старое)
             os_command = (
                 graph_appgen_path
                 + " "
@@ -262,21 +262,27 @@ def upload_task():
             # =========================================================
 
             # новый архитектор
-            # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
-            graph_appgen_path_new_py = cur_abs_path + "/architect/json2js.py"
-            cpp_output_file_path = cur_abs_path + "/app/main/output.json"
+            graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
+            os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
+            cpp_output_file_path = cur_abs_path + "/output.json" # !!! TODO: сохраняется не там где надо
 
-            # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
-            # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
+            # скрипт по перводу json в js
+            graph_appgen_path_new_py = cur_abs_path + "/scripts/json2js.py"
 
             # =========================================================
             #    если загрузили сразу .json файл (дебаг C++ скрипта)
             # =========================================================
 
-            # print(f"\n>>>>>>>>>>>> {graph_config_file.endswith(".json")}\n")
+            print(f"\n>>>>>>>>>>>> {graph_config_file.endswith('.json')}\n")
 
             if graph_config_file.endswith(".json"):
                 cpp_output_file_path = graph_config_file
+            else:
+                # архитектр сохраняет результат не там где надо, 
+                # поэтому потом дополнительно переносим файл
+                
+                print(f"\n>>>>>>>>>>>> run {os_command_new_cpp}")
+                os.system(os_command_new_cpp)
 
             os_command_new_py = (
                 "python3 "
@@ -287,10 +293,7 @@ def upload_task():
                 + graph_output_dirs
                 + "/jsonGraphData.js"
             )  # работает
-
-            # print(f"run {os_command_new_cpp}")
-            # os.system(os_command_new_cpp)
-
+            
             os.system(os_command_new_py)
 
         # Всё необходимое создано, возвращаемся на страницу пользователя

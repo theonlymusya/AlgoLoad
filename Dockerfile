@@ -1,6 +1,8 @@
 FROM python:3.6-alpine
 
-RUN apk add --no-cache bash; \
+# add GCC on alpine: https://stackoverflow.com/questions/50984864/installing-gcc-from-source-on-alpine
+
+RUN apk add --no-cache bash make build-base; \
     apk add curl; \
     apk add --upgrade qt5-qtbase; \
     adduser -D flask_skipod
@@ -21,7 +23,9 @@ WORKDIR /home/flask_skipod
 #     logs userdata \
 #     app.db flask_skipod.py config.py Folders_create.py boot.sh ./
 COPY --chown=flask_skipod:flask_skipod app app
+COPY --chown=flask_skipod:flask_skipod scripts scripts
 COPY --chown=flask_skipod:flask_skipod architect architect
+COPY --chown=flask_skipod:flask_skipod architect_new architect_new
 COPY --chown=flask_skipod:flask_skipod migrations migrations
 COPY --chown=flask_skipod:flask_skipod logs logs
 COPY --chown=flask_skipod:flask_skipod new_user_folder new_user_folder
@@ -30,7 +34,7 @@ COPY --chown=flask_skipod:flask_skipod requirements.txt flask_skipod.py config.p
 #COPY --chown=flask_skipod:flask_skipod requirements.txt app.db flask_skipod.py config.py Folders_create.py boot.sh ./
 
 
-RUN chmod -R 777 app architect migrations logs new_user_folder\
+RUN chmod -R 777 app scripts architect architect_new migrations logs new_user_folder\
     flask_skipod.py config.py Folders_create.py boot.sh
 #!    app.db flask_skipod.py config.py Folders_create.py boot.sh
 
@@ -39,10 +43,12 @@ RUN venv/bin/pip install --upgrade pip
 RUN venv/bin/pip install -r requirements.txt
 RUN venv/bin/pip install gunicorn
 
+# компиляция ядра
+RUN (rm -rf scripts/main && cd ./architect_new && make && mv main ../scripts && cd ..)
+
 #!RUN venv/bin/pip install --upgrade pip
 #!RUN venv/bin/pip install -r requirements.txt
 #!RUN venv/bin/pip install gunicorn
-
 
 #!COPY app app
 #!COPY architect architect
