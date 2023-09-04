@@ -18,6 +18,10 @@ class Params {
         this.showSystemLoadInfo = true;
         this.showGraphInfo = true;
 
+        /** уровень ярусно параллельной формы */
+        this.level = 0;
+        this.showLevel = true;
+
         this.fpsRate = 30;
         this.lineWidth = 4;
         this.cameraType = CameraTypes.perspective;
@@ -46,7 +50,7 @@ class AlgoViewСonfiguration {
         this.scene = new THREE.Scene();
 
         this.camera = this.createCamera();
-        this.camera.position.set(100, 40, 20);
+        this.camera.position.set(90, 30, 90);
         this.frustumSize = 1000;
 
         this.renderer = new THREE.WebGLRenderer({
@@ -167,13 +171,18 @@ class AlgoViewСonfiguration {
         const folderViewSettins = this.gui.addFolder("View Settins");
         const folderCameraControls = this.gui.addFolder("Camera Controls");
         const folderSceneControls = this.gui.addFolder("Scene Controls");
+        const folderLevelControls = this.gui.addFolder("Tiered-Parallel Form");
 
-        // folderViewSettins.open();
         folderCameraControls.open();
-        // folderSceneControls.open();
+        folderLevelControls.open();
 
         const thisContextTrans = this;
         const controllerContextTrans = this.controllerContext;
+
+        /**     ================
+         *           Funcs
+         *      ================
+         */
 
         const rebuildSceneCallback = function () {
             controllerContextTrans.rebuildScene();
@@ -185,15 +194,54 @@ class AlgoViewСonfiguration {
 
         const changeCharacteristicsBlock = function () {
             if (thisContextTrans.params.showGraphInfo) {
-                Controller.changeCharacteristicsBlock(graphInfo);
+                InfoBlockController.changeCharacteristicsBlock(graphInfo);
             } else {
-                Controller.changeCharacteristicsBlock(null);
+                InfoBlockController.changeCharacteristicsBlock(null);
             }
         };
 
         const changeInfoBlock = function () {
             if (thisContextTrans.params.showSystemLoadInfo == false) {
-                Controller.changeInfoBlock("", "");
+                InfoBlockController.changeFPSInfoBlock("", "");
+            }
+        };
+
+        const maxLevel = graphInfo.characteristics.critical_length;
+
+        const levelInc = function () {
+            if (thisContextTrans.params.level < maxLevel) {
+                thisContextTrans.params.level += 1;
+            }
+
+            levelCounter.setValue(thisContextTrans.params.level);
+        };
+
+        const levelDec = function () {
+            if (thisContextTrans.params.level > 0) {
+                thisContextTrans.params.level -= 1;
+            }
+
+            levelCounter.setValue(thisContextTrans.params.level);
+        };
+
+        const levelControllerObj = { levelInc: levelInc, levelDec: levelDec };
+        let prevLevelValue;
+
+        const updateLevelValue = function () {
+            const floatLevelValue = thisContextTrans.params.level;
+            // console.log("typeof floatLevelValue = ", typeof floatLevelValue);
+
+            if (floatLevelValue < 0 || typeof floatLevelValue != "number") {
+                thisContextTrans.params.level = 0;
+            } else if (floatLevelValue > maxLevel) {
+                thisContextTrans.params.level = maxLevel;
+            } else if (floatLevelValue % 1 != 0) {
+                thisContextTrans.params.level = Math.round(floatLevelValue);
+            }
+
+            if (thisContextTrans.params.level != prevLevelValue) {
+                prevLevelValue = thisContextTrans.params.level;
+                rebuildSceneCallback();
             }
         };
 
@@ -253,6 +301,24 @@ class AlgoViewСonfiguration {
         folderSceneControls
             .add(this.controllerContext, "rebuildScene")
             .name("Rebuild"); // .onChange(rebuildSceneCallback);
+
+        /**     ==================
+         *     Tiered-Parallel Form
+         *      ==================
+         */
+
+        folderLevelControls
+            .add(this.params, "showLevel")
+            .name("Show Level")
+            .onChange(rebuildSceneCallback);
+
+        const levelCounter = folderLevelControls
+            .add(this.params, "level", 0, maxLevel)
+            .name("Level")
+            .onChange(updateLevelValue);
+
+        folderLevelControls.add(levelControllerObj, "levelInc").name("Level +");
+        folderLevelControls.add(levelControllerObj, "levelDec").name("Level -");
     }
 
     /** Обработка изменения размера экрана */
@@ -303,11 +369,13 @@ class Vertex {
      * @param {number} y
      * @param {number} z
      * @param {string} type
+     * @param {number} level
      */
-    constructor(id, x, y, z, type) {
+    constructor(id, x, y, z, type, level) {
         this.id = id;
         this.pos = new THREE.Vector3(x, y, z);
         this.type = type;
+        this.level = level;
     }
 }
 
@@ -319,12 +387,16 @@ class Edge {
      * @param {Vertex} sourceVertex
      * @param {Vertex} targetVertex
      * @param {string} type
+     * @param {number} level
+     * @param {boolean} requiresBending
      */
-    constructor(id, sourceVertex, targetVertex, type) {
+    constructor(id, sourceVertex, targetVertex, type, level, requiresBending) {
         this.id = id;
         this.sourceVertex = sourceVertex;
         this.targetVertex = targetVertex;
         this.type = type;
+        this.level = level;
+        this.requiresBending = requiresBending;
     }
 }
 
@@ -353,39 +425,154 @@ class Graph {
      * @param {number} value
      * @returns преобразованное значение
      */
-    coordinateTransform(value) {
-        return this.#axisShift + value * this.#scale;
+    coordinateTransform(value, isVertexShifted = false) {
+        return (
+            this.#axisShift +
+            (isVertexShifted ? value + 0.5 : value) * this.#scale
+        );
     }
 
     createVertices() {
         for (let i = 0; i < this.graphData.vertices.length; i++) {
             const element = this.graphData.vertices[i];
 
+            // const isVertexShifted = this.checkVertexForRequiredShift(
+            //     element.coordinates[0],
+            //     element.coordinates[1],
+            //     element.coordinates[2]
+            // );
+
+            const isVertexShifted = false; // element.level == 0;
+
             const vertex = new Vertex(
                 element.id,
-                this.coordinateTransform(element.coordinates[0]),
-                this.coordinateTransform(element.coordinates[1]),
-                this.coordinateTransform(element.coordinates[2]),
-                element.type
+                this.coordinateTransform(
+                    element.coordinates[0],
+                    isVertexShifted
+                ),
+                this.coordinateTransform(
+                    element.coordinates[1],
+                    isVertexShifted
+                ),
+                this.coordinateTransform(
+                    element.coordinates[2],
+                    isVertexShifted
+                ),
+                element.type,
+                element.level
             );
 
             this.vertices.set(element.id, vertex);
         }
     }
 
+    /**
+     * Проверка на необходимость сдвига вершины
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     */
+    // checkVertexForRequiredShift(x, y, z) {
+    //     let answer = false;
+
+    //     this.vertices.forEach(function (vertex, id, map) {
+    //         if (answer == true) return;
+    //         console.log(vertex.pos.x, x);
+
+    //         if (vertex.pos.x == x && vertex.pos.y == y && vertex.pos.z == z) {
+    //             answer = true;
+    //         }
+    //     });
+
+    //     return answer;
+    // }
+
     createEdges() {
         for (let i = 0; i < this.graphData.edges.length; i++) {
             const element = this.graphData.edges[i];
 
+            const sourceVertex = this.vertices.get(element.sourceVertexId);
+            const targetVertex = this.vertices.get(element.targetVertexId);
+
+            const requiresBending = this.checkEdgeForRequiredBending(
+                sourceVertex,
+                targetVertex
+            );
+
             const edge = new Edge(
                 element.id,
-                this.vertices.get(element.sourceVertexId),
-                this.vertices.get(element.targetVertexId),
-                element.type
+                sourceVertex,
+                targetVertex,
+                element.type,
+                element.level,
+                requiresBending
             );
 
             this.edges.set(element.id, edge);
         }
+    }
+
+    /**
+     * Проверка на необходимость изгиба дуги
+     * @param {Vertex} sourceVertex начало дуги
+     * @param {Vertex} targetVertex конец дуги
+     */
+    checkEdgeForRequiredBending(sourceVertex, targetVertex) {
+        let answer = false;
+        const context = this;
+
+        this.vertices.forEach(function (verifiableVertex, id, map) {
+            if (answer == true) return;
+
+            const isVertexCrossed = context.checkVertexIntersection(
+                sourceVertex,
+                targetVertex,
+                verifiableVertex
+            );
+
+            if (isVertexCrossed) answer = true;
+        });
+
+        return answer;
+    }
+
+    /**
+     * Проверка пересечения дуги и проверяемой точки
+     * @param {Vertex} sourceVertex начало дуги
+     * @param {Vertex} targetVertex конец дуги
+     * @param {Vertex} verifiableVertex проверяемая точка
+     */
+    checkVertexIntersection(sourceVertex, targetVertex, verifiableVertex) {
+        // Проверка через линейную зависимость координат
+
+        let kx =
+            (verifiableVertex.pos.x - sourceVertex.pos.x) /
+            (targetVertex.pos.x - sourceVertex.pos.x);
+
+        let ky =
+            (verifiableVertex.pos.y - sourceVertex.pos.y) /
+            (targetVertex.pos.y - sourceVertex.pos.y);
+
+        let kz =
+            (verifiableVertex.pos.z - sourceVertex.pos.z) /
+            (targetVertex.pos.z - sourceVertex.pos.z);
+
+        if (kx <= 0 || kx >= 1) return false;
+        if (ky <= 0 || ky >= 1) return false;
+        if (kz <= 0 || kz >= 1) return false;
+
+        // console.log("edge: ", sourceVertex.id, targetVertex.id);
+        // console.log("verifiableVertex: ", verifiableVertex.id);
+        // console.log("kx = ", kx);
+        // console.log("ky = ", ky);
+        // console.log("kz = ", kz);
+        // console.log("");
+
+        const isEqual = function (a, b) {
+            return isNaN(a) || isNaN(b) || a - b < 1e-4;
+        };
+
+        return isEqual(kx, ky) && isEqual(ky, kz);
     }
 
     getSize() {
@@ -540,31 +727,31 @@ class GraphicObjects {
 
         if (n1.x != 0 && n1.y == 0 && n1.z == 0) {
             // ось OX
-            console.log("ось OX");
+            // console.log("ось OX");
             n2.set(0, -1, -1).normalize();
         } else if (n1.x == 0 && n1.y != 0 && n1.z == 0) {
             // ось OY
-            console.log("ось OY");
+            // console.log("ось OY");
             n2.set(-1, 0, -1).normalize();
         } else if (n1.x == 0 && n1.y == 0 && n1.z != 0) {
             // ось OZ
-            console.log("ось OZ");
+            // console.log("ось OZ");
             n2.set(-1, -1, 0).normalize();
         } else if (n1.x != 0 && n1.y != 0 && n1.z == 0) {
             // плоскость OXY
-            console.log("плоскость OXY");
+            // console.log("плоскость OXY");
             n2.set(0, 0, -1);
         } else if (n1.x == 0 && n1.y != 0 && n1.z != 0) {
             // плоскость OYZ
-            console.log("плоскость OYZ");
+            // console.log("плоскость OYZ");
             n2.set(-1, 0, 0);
         } else if (n1.x != 0 && n1.y == 0 && n1.z != 0) {
             // плоскость OXZ
-            console.log("плоскость OXZ");
+            // console.log("плоскость OXZ");
             n2.set(0, -1, 0);
         } else {
             // Общий случай
-            console.log("Общий случай");
+            // console.log("Общий случай");
 
             const n1x = Math.abs(n1.x);
             const n1y = Math.abs(n1.y);
@@ -577,9 +764,9 @@ class GraphicObjects {
             const n2x = b * Math.cos(gamma) * Math.sign(n1.x);
             const n2z = b * Math.sin(gamma) * Math.sign(n1.z);
 
-            console.log("beta =", (beta * 180) / Math.PI);
-            console.log("b =", b);
-            console.log("gamma =", (gamma * 180) / Math.PI);
+            // console.log("beta =", (beta * 180) / Math.PI);
+            // console.log("b =", b);
+            // console.log("gamma =", (gamma * 180) / Math.PI);
 
             n2.set(-n2x, n1.y, -n2z).normalize();
         }
@@ -587,10 +774,10 @@ class GraphicObjects {
         // рассчитываем третий базисный вектор n3
         n3.copy(cross(n1, n2));
 
-        console.log("n1:", n1.x, n1.y, n1.z);
-        console.log("n2:", n2.x, n2.y, n2.z);
-        console.log("n3:", n3.x, n3.y, n3.z);
-        console.log("\n");
+        // console.log("n1:", n1.x, n1.y, n1.z);
+        // console.log("n2:", n2.x, n2.y, n2.z);
+        // console.log("n3:", n3.x, n3.y, n3.z);
+        // console.log("\n");
 
         const M = [
             [n1.x, n2.x, n3.x],
@@ -616,7 +803,7 @@ class GraphicObjects {
         const len = sourceVector3.distanceTo(targetVector3);
 
         /** радиус окружности */
-        const r = len * 1.1;
+        const r = len * 0.85;
 
         /** координаты центра окружности */
         const x0 = len / 2;
@@ -799,7 +986,7 @@ class GraphicObjects {
     }
 
     /** Создает сферу по заданным координатам */
-    static createSphere(x, y, z, colorIndex = 1, sphereRadius = 2) {
+    static createSphere(x, y, z, sphereRadius = 2, colorIndex = 1) {
         // const sphereRadius = 2;
         const sphereWidthDivisions = 16;
         const sphereHeightDivisions = 16;
@@ -835,17 +1022,26 @@ class GraphicObjects {
 
     /** Создает октаэдр по заданным координатам */
     static createOctahedron(x, y, z, colorIndex) {
-        // https://threejs.org/docs/#api/en/geometries/OctahedronGeometry
+        // https://stackoverflow.com/questions/7919516/using-textures-in-three-js
 
-        const octahedronRadius = 1.8;
-        const octahedronGeo = new THREE.OctahedronGeometry(octahedronRadius);
-        const octahedronMat = new THREE.MeshPhongMaterial({
-            color: colors[colorIndex],
+        const loader = new THREE.TextureLoader();
+        loader.load("./textures/glass_texture_5.jpeg", function (texture) {
+            // https://threejs.org/docs/#api/en/geometries/OctahedronGeometry
+
+            const octahedronRadius = 1.8;
+            const octahedronGeo = new THREE.OctahedronGeometry(
+                octahedronRadius
+            );
+
+            const octahedronMat = new THREE.MeshPhongMaterial({
+                map: texture,
+                color: colors[colorIndex],
+            });
+
+            const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
+            mesh.position.set(x, y, z);
+            config.graph.add(mesh);
         });
-
-        const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
-        mesh.position.set(x, y, z);
-        config.graph.add(mesh);
     }
 }
 
@@ -956,51 +1152,62 @@ class View {
 
     /**
      * Построение 3D объекта вершины на сцене.
-     * @param {Vertex} vetrex - вершина, экземпляр класса `Vertex`.
+     * @param {Vertex} vertex - вершина, экземпляр класса `Vertex`.
      */
-    buildVertexObject(vetrex) {
-        // 0 - входная/выходная вершина, октаэдр
+    buildVertexObject(vertex) {
+        // [old] 0 - октаэдр (входная/выходная вершина)
         // 1 - маленький шар
         // 2 - большой шар
         // 3 - хз пока что
 
-        switch (vetrex.type) {
-            case "0": {
-                GraphicObjects.createOctahedron(
-                    vetrex.pos.x,
-                    vetrex.pos.y,
-                    vetrex.pos.z,
-                    2
-                );
-                break;
-            }
+        // 1 - yellow
+        // 2 - blue
+        const color =
+            config.params.showLevel && vertex.level == config.params.level
+                ? 2
+                : 1;
+
+        if (vertex.level == 0) {
+            GraphicObjects.createOctahedron(
+                vertex.pos.x,
+                vertex.pos.y,
+                vertex.pos.z,
+                color
+            );
+
+            return;
+        }
+
+        switch (vertex.type) {
             case "1": {
                 GraphicObjects.createSphere(
-                    vetrex.pos.x,
-                    vetrex.pos.y,
-                    vetrex.pos.z,
-                    1,
-                    1.3
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+
+                    1.3,
+                    color
                 );
                 break;
             }
 
             case "2": {
                 GraphicObjects.createSphere(
-                    vetrex.pos.x,
-                    vetrex.pos.y,
-                    vetrex.pos.z,
-                    1,
-                    1.8
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+
+                    1.8,
+                    color
                 );
                 break;
             }
             default: {
                 GraphicObjects.createCube(
-                    vetrex.pos.x,
-                    vetrex.pos.y,
-                    vetrex.pos.z,
-                    1
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+                    color
                 );
                 break;
             }
@@ -1012,12 +1219,27 @@ class View {
      * @param {Edge} edge - ребро, экземпляр класса `Edge`.
      */
     buildEdgeObject(edge) {
-        // !!!
-        GraphicObjects.createCurvedArrow(
-            edge.sourceVertex.pos,
-            edge.targetVertex.pos,
-            6
-        );
+        // 1 - yellow
+        // 2 - blue
+        // 6 - red
+        const color =
+            config.params.showLevel && edge.level == config.params.level
+                ? 2
+                : 6;
+
+        if (edge.requiresBending) {
+            GraphicObjects.createCurvedArrow(
+                edge.sourceVertex.pos,
+                edge.targetVertex.pos,
+                color
+            );
+        } else {
+            GraphicObjects.createStraightArrow(
+                edge.sourceVertex.pos,
+                edge.targetVertex.pos,
+                color
+            );
+        }
     }
 }
 
@@ -1048,7 +1270,10 @@ class Controller {
     autoRotateGraph() {
         config.rotateGraphByClock();
     }
+}
 
+/** Контроллер полей с информацией о графе и ошибках в работе */
+class InfoBlockController {
     static changeCharacteristicsBlock(graphInfo) {
         let content = "";
 
@@ -1064,20 +1289,21 @@ class Controller {
             text += "• width: " + info.width + "<br>";
 
             if (warnings.length != 0) {
-                text += "<br><b><i>Warnings:</i></b><br>";
+                text +=
+                    "<br><b><i>Warnings (" + warnings.length + "):</i></b><br>";
 
                 for (let i = 0; i < warnings.length; i++) {
                     const num = i + 1;
-                    text += num + ": " + warnings[i] + "<br>";
+                    text += "<b>" + num + ":</b> " + warnings[i] + "<br>";
                 }
             }
 
             if (errors.length != 0) {
-                text += "<br><b><i>Errors:</i></b><br>";
+                text += "<br><b><i>Errors (" + errors.length + "):</i></b><br>";
 
                 for (let i = 0; i < errors.length; i++) {
                     const num = i + 1;
-                    text += num + ": " + errors[i] + "<br>";
+                    text += "<b>" + num + ":</b> " + errors[i] + "<br>";
                 }
             }
 
@@ -1087,7 +1313,7 @@ class Controller {
         document.getElementById("textInfoBlock_0").innerHTML = content;
     }
 
-    static changeInfoBlock(text1, text2) {
+    static changeFPSInfoBlock(text1, text2) {
         const content1 = "<h4>" + text1 + "</h4>";
         const content2 = "<h4>" + text2 + "</h4>";
 
@@ -1106,7 +1332,8 @@ class AppManager {
                 target[key] = value;
 
                 if (value == "done") {
-                    config.setupGUI();
+                    // config.setupGUI();
+                    console.log("AppManager.statusProxy updated");
                 }
 
                 return true;
@@ -1132,14 +1359,15 @@ class App {
         this.controller = new Controller(this.appManager, this.view);
 
         config.setControllerContext(this.controller);
-        // this.appManager.setDoneBuildStatus();
-        // this.appManager.buildStatus = "done";
-
         config.setupGUI(this.model.graphInfo);
 
         if (config.params.showGraphInfo) {
-            Controller.changeCharacteristicsBlock(this.model.graphInfo);
+            InfoBlockController.changeCharacteristicsBlock(
+                this.model.graphInfo
+            );
         }
+
+        this.appManager.setDoneBuildStatus();
     }
 }
 
@@ -1257,7 +1485,7 @@ async function renderLoop() {
     fpsManager.addFpsValue(fps);
     fpsManager.addRenderTimeValue(renderTime);
     if (config.params.showSystemLoadInfo) {
-        Controller.changeInfoBlock(
+        InfoBlockController.changeFPSInfoBlock(
             fpsManager.getFpsInfoStr(),
             fpsManager.getRenderTimeInfoStr()
         );
@@ -1268,5 +1496,3 @@ async function renderLoop() {
 const app = new App();
 
 renderLoop();
-
-// future https://github.com/birkir/react-three-gui

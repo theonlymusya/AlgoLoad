@@ -38,13 +38,20 @@ RUN chmod -R 777 app scripts architect_new migrations logs new_user_folder\
     flask_skipod.py config.py Folders_create.py boot.sh
 #!    app.db flask_skipod.py config.py Folders_create.py boot.sh
 
+# компиляция ядра
+# RUN (rm -rf scripts/main && cd ./architect_new && make && mv main ../scripts && cd ..)
+RUN rm -rf scripts/main
+RUN rm -rf scripts/*.o
+RUN (cd ./architect_new && make)
+RUN mv ./architect_new/main ./scripts
+
+# установка нужных библиотек 
 RUN python3 -m venv venv
 RUN venv/bin/pip install --upgrade pip
 RUN venv/bin/pip install -r requirements.txt
 RUN venv/bin/pip install gunicorn
 
-# компиляция ядра
-RUN (rm -rf scripts/main && cd ./architect_new && make && mv main ../scripts && cd ..)
+
 
 #!RUN venv/bin/pip install --upgrade pip
 #!RUN venv/bin/pip install -r requirements.txt
