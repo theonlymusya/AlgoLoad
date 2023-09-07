@@ -33,8 +33,11 @@ def index():
 def favicon():
     # https://stackoverflow.com/questions/48863061/favicon-ico-results-in-404-error-in-flask-app
 
+    cur_abs_path = os.path.abspath(os.path.curdir)
+    # usr_tsk_path = "/volume/userdata/" + current_user.local_folder + "/task"
+
     send_from_directory(
-        directory="/home/flask_skipod/app/static",
+        directory=cur_abs_path + "/static",
         filename="favicon.ico",
         mimetype="image/vnd.microsoft.icon",
     )
@@ -63,22 +66,28 @@ def send_textures(username, path):
         + cur_user.local_folder
         + "/page"
     )
-    # print("SIVNSIVNSIRIEFIWHFIHFIRIHFIRH")
-    # print(cur_folder)
-    # print(path)
+
+    print(f"cur_folder = {cur_folder}")
+
+    # return send_from_directory(
+    #     directory="/home/flask_skipod/volume/vars",
+    #     filename=user.var_file,
+    #     as_attachment=True,
+    # )
+
     return send_from_directory(cur_folder, path)
 
 
-# @bluePrint.route("/user/<username>/get_data", methods=["GET"])
-# def render_static(username):
-#     # Определяем, в какой папке лежат данные для нашего пользователя
-#     cur_user = User.query.filter_by(username=username).first_or_404()
-#     cur_dir = os.path.curdir
-#     cur_dir = os.path.abspath(cur_dir)
-#     cur_dir = os.path.realpath(cur_dir)
-#     cur_folder = cur_dir + "/volume/userdata/" + cur_user.local_folder + "/page"
-#     print("=======> ", cur_folder + "/page.html")
-#     return send_from_directory(cur_folder, "/page.html")
+@bluePrint.route("/user/<username>/get_data", methods=["GET"])
+def render_static(username):
+    # Определяем, в какой папке лежат данные для нашего пользователя
+    cur_user = User.query.filter_by(username=username).first_or_404()
+    cur_dir = os.path.curdir
+    cur_dir = os.path.abspath(cur_dir)
+    cur_dir = os.path.realpath(cur_dir)
+    cur_folder = cur_dir + "/volume/userdata/" + cur_user.local_folder + "/page"
+    print("=======> ", cur_folder + "/page.html")
+    return send_from_directory(cur_folder, "/page.html")
 
 
 @bluePrint.route("/user/<username>/home_page")
@@ -216,87 +225,36 @@ def upload_task():
             )
             os.write(fd, bytes(form.task_code.data, "utf-8"))
             os.close(fd)
+
             # Запись разметки, загруженной юзверем
             # В сети предлагают чекать имя файла через werkzeug, чего я сделать не могу из-за отсутствия в werkzeug этой функции
             graph_name = form.file_data.data.filename
             form.file_data.data.save(cur_abs_path + usr_tsk_path + "/" + graph_name)
 
-            # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
-            graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
-            graph_output_dirs = cur_abs_path + usr_pge_path + "/Json_models"
-
-            # =========================================================
-            #                       algoview 1.0 old
-            # =========================================================
-
-            # # Нужно снести все старые данные юзверя
-            # try:
-            #     os.remove(os.path.join(graph_output_dirs, "Fl*"))
-            # except OSError:
-            #     pass
-            # try:
-            #     os.remove(os.path.join(graph_output_dirs, "Op*"))
-            # except OSError:
-            #     pass
-            # try:
-            #     os.remove(os.path.join(graph_output_dirs, "Page*"))
-            # except OSError:
-            #     pass
-
-            # graph_appgen_path = cur_abs_path + "/architect/architect"
-
-            # # Запуск архитектора (!!! TODO: удалить все старое)
-            # os_command = (
-            #     graph_appgen_path
-            #     + " "
-            #     + "1"
-            #     + " "
-            #     + graph_config_file
-            #     + " "
-            #     + graph_output_dirs
-            # )
-            # os.system(os_command)
-
             # =========================================================
             #                       algoview 2.0
             # =========================================================
 
-            # новый архитектор
-            graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
-            os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
-            # !!! TODO: сохраняется не там где надо
-            cpp_output_file_path = cur_abs_path + "/output.json"
+            # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
+            graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
+            graph_output_dirs = cur_abs_path + usr_pge_path + "/Json_models"
+            cpp_output_file_path = graph_output_dirs + "/graphData.json"
 
-            # скрипт по перводу json в js
-            graph_appgen_path_new_py = cur_abs_path + "/scripts/json2js.py"
-
-            # =========================================================
-            #    если загрузили сразу .json файл (дебаг C++ скрипта)
-            # =========================================================
-
-            # print(f"\n>>>>>>>>>>>> {graph_config_file.endswith('.json')}\n")
+            # Нужно снести все старые данные графа
+            try:
+                os.remove(os.path.join(graph_output_dirs, "graphData.json"))
+            except OSError:
+                pass
 
             if graph_config_file.endswith(".json"):
-                print(f"\n>>>>>>>>>>>> загрузили .json")
-                cpp_output_file_path = graph_config_file
-            else:
-                # архитектр сохраняет результат не там где надо,
-                # поэтому потом дополнительно переносим файл
+                print(f"*\n*\n*\n>>>>>>>>>>>> Загрузили .json")
+                os.replace(graph_config_file, cpp_output_file_path)
+            else:  # новый архитектор
+                graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
+                os_command_new_cpp = f"{graph_appgen_path_new_cpp} {graph_config_file} {cpp_output_file_path}"
 
-                print(f"\n>>>>>>>>>>>> run {os_command_new_cpp}")
+                print(f"*\n*\n*\n>>>>>>>>>>>> OS run {os_command_new_cpp}")
                 os.system(os_command_new_cpp)
-
-            os_command_new_py = (
-                "python3 "
-                + graph_appgen_path_new_py
-                + " "
-                + cpp_output_file_path
-                + " "
-                + graph_output_dirs
-                + "/jsonGraphData.js"
-            )
-
-            os.system(os_command_new_py)
 
             # сохранение таска в бд
             current_user.task_file = form.file_data.data.filename
@@ -324,30 +282,29 @@ def receive_task():
     # Настройка формы
     form = TaskReceiveForm()
     if os.path.exists(cur_abs_path + usr_tsk_path):
-        # Закинем комментарии юзверя в его же форму
+        # Закинем комментарии юзера в его же форму
         fd = os.open(cur_abs_path + usr_tsk_path + "/Task_code.txt", os.O_RDONLY)
         bytes_data = os.read(fd, 16384)
         form.task_code.data = bytes_data.decode("utf-8")
-        # Получаем xml-код пользователя
-        # <<<<<<< new_core
-        #         fd = os.open(
-        #             cur_abs_path + usr_tsk_path + "/" + request.args.get("graph_name"),
-        #             os.O_RDONLY,
-        #         )
-        # =======
-        fd = os.open(
-            cur_abs_path + usr_tsk_path + "/" + current_user.task_file, os.O_RDONLY
-        )
-        # >>>>>>> main
-        bytes_data = os.read(fd, 16384)
-        xml_code = bytes_data.decode("utf-8")
+
+        # Получаем xml-код пользователя (или оставляем пустым если был загружен .json)
+        try:
+            fd = os.open(
+                cur_abs_path + usr_tsk_path + "/" + current_user.task_file, os.O_RDONLY
+            )
+            # >>>>>>> main
+            bytes_data = os.read(fd, 16384)
+            xml_code = bytes_data.decode("utf-8")
+        except:
+            xml_code = ""
+
     # Настройка пути к визуализационной странице и рендер всего ресурса
-    # frame_address = "/user/" + current_user.username + "/get_data" // не работает ваще
-    frame_address = "/user/" + current_user.username + "/page_new.html"
+    # frame_address = "/user/" + current_user.username + "/get_data" # не работает ваще
+    frame_address = "/user/" + current_user.username + "/AlgoViewPage.html"
 
     # frame_address = '/userdata/' + current_user.username + '/page'
-    # print("ILNINLDVGODRO")
     # print(request.args.get('graph_name'))
+
     return render_template(
         "result_task.html",
         title="Результат",

@@ -171,7 +171,7 @@ class AlgoViewСonfiguration {
         const folderViewSettins = this.gui.addFolder("View Settins");
         const folderCameraControls = this.gui.addFolder("Camera Controls");
         const folderSceneControls = this.gui.addFolder("Scene Controls");
-        const folderLevelControls = this.gui.addFolder("Tiered-Parallel Form");
+        const folderLevelControls = this.gui.addFolder("Parallel Form");
 
         folderCameraControls.open();
         folderLevelControls.open();
@@ -1045,6 +1045,7 @@ class GraphicObjects {
     }
 }
 
+// !!! todo перенести DataLoader в отдельный файл
 /** Модель загрузки данных. */
 class DataLoader {
     static emptyGraphDataTemplate = { vertices: [], edges: [] };
@@ -1053,11 +1054,25 @@ class DataLoader {
         this.graphData = DataLoader.emptyGraphDataTemplate;
     }
 
-    loadGraphData() {
-        // jsonGraphData загружена в html страничке
-        // !!!
-        this.graphData = JSON.parse(jsonGraphData);
+    async loadGraphData() {
+        const href = window.location.href; // http://localhost:3001/user/q000/AlgoViewPage.html
+        const mainPath = href.slice(0, href.lastIndexOf("/")); // http://localhost:3001/user/q000
+        const jsonGraphDataUrl = mainPath + "/Json_models/graphData.json"; // http://localhost:3001/user/d000/Json_models/graphData.json
 
+        let rawData = "";
+
+        await $.ajax({
+            type: "GET",
+            url: jsonGraphDataUrl,
+            headers: { "cache-control": "no-cache" }, // !!!
+            success: function (data) {
+                console.log("data from ajax.get = ", data);
+                rawData = data;
+            },
+        });
+
+        // this.graphData = JSON.parse(rawData);
+        this.graphData = rawData;
         return this.graphData;
     }
 }
@@ -1067,9 +1082,11 @@ class DataLoader {
  * Содержит:
  * * обработанные данные графа. */
 class Model {
-    constructor() {
+    constructor() {}
+
+    async build() {
         const dataLoader = new DataLoader();
-        this.graphData = dataLoader.loadGraphData();
+        this.graphData = await dataLoader.loadGraphData();
 
         this.graph = new Graph(this.graphData);
         this.graphInfo = new GraphInfo(this.graphData);
@@ -1285,8 +1302,8 @@ class InfoBlockController {
             let text = "<b><i>Graph characteristics:</i></b><br>";
             text += "• vertex num: " + info.vertex_num + "<br>";
             text += "• edge num: " + info.edge_num + "<br>";
-            text += "• critical length: " + info.critical_length + "<br>";
-            text += "• width: " + info.width + "<br>";
+            text += "• critical path length: " + info.critical_length + "<br>";
+            text += "• parallel form width: " + info.width + "<br>";
 
             if (warnings.length != 0) {
                 text +=
@@ -1354,7 +1371,12 @@ class AppManager {
 class App {
     constructor() {
         this.appManager = new AppManager();
+    }
+
+    async build() {
         this.model = new Model();
+        await this.model.build();
+
         this.view = new View(this.model);
         this.controller = new Controller(this.appManager, this.view);
 
@@ -1459,6 +1481,13 @@ async function renderLoop() {
     //     camera.updateProjectionMatrix();
     // }
 
+    if (app.appManager.buildStatus != "done") {
+        console.log("Waiting for the application to finish building.");
+        await sleep(100);
+        requestAnimationFrame(renderLoop);
+        return;
+    }
+
     const startTime = performance.now();
 
     if (!config.params.pause) {
@@ -1494,5 +1523,6 @@ async function renderLoop() {
 }
 
 const app = new App();
+app.build();
 
 renderLoop();

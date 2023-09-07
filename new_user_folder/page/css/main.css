@@ -41,19 +41,23 @@ h1 {
 
 #textInfoBlock_0 {
     position: absolute;
+    opacity: 1;
     left: 20px;
     top: 20px;
+    width: 400px;
 }
 
 #textInfoBlock_1 {
     position: absolute;
-    left: 20px;
+    opacity: 1;
+    right: 20px;
     bottom: 42px;
 }
 
 #textInfoBlock_2 {
     position: absolute;
-    left: 20px;
+    opacity: 1;
+    right: 20px;
     bottom: 20px;
 }
 
