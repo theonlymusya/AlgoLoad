@@ -15,20 +15,46 @@ class Params {
     constructor() {
         this.pause = false;
         this.autoRotate = false;
+
+        this.showGraphCharacteristics = true;
+        this.showErrors = true;
+        this.showWarnings = true;
         this.showSystemLoadInfo = true;
-        this.showGraphInfo = true;
 
         /** уровень ярусно параллельной формы */
         this.level = 0;
         this.showLevel = true;
 
+        this.defaultLineWidth = 2.5;
+        this.lineWidth;
+        this.axisLineWidth;
+        this.setDefaultLineWidth();
+
         this.fpsRate = 30;
-        this.lineWidth = 4;
         this.cameraType = CameraTypes.perspective;
+    }
+
+    /** Обновляет ширину осевых линий */
+    updateAxisLineWidth() {
+        this.axisLineWidth = this.lineWidth * 1.6;
+    }
+
+    /**
+     * Устанавливает новую ширину линий
+     * @param {Number} newLineWidth
+     */
+    setLineWidth(newLineWidth) {
+        this.lineWidth = newLineWidth;
+        this.updateAxisLineWidth();
+    }
+
+    /** Устанавливает стандартную ширину линий */
+    setDefaultLineWidth() {
+        this.setLineWidth(this.defaultLineWidth);
     }
 }
 
-class AlgoViewСonfiguration {
+class AlgoViewConfiguration {
     constructor() {
         this.params = new Params();
         this.configuringThreeJS();
@@ -184,6 +210,28 @@ class AlgoViewСonfiguration {
          *      ================
          */
 
+        let prevLineWidth = this.params.lineWidth;
+
+        const changeLineWidth = function () {
+            let newLineWidth = thisContextTrans.params.lineWidth;
+
+            if (newLineWidth == null || typeof newLineWidth != "number") {
+                thisContextTrans.params.setDefaultLineWidth();
+                rebuildSceneCallback();
+                return;
+            }
+
+            thisContextTrans.params.setLineWidth(
+                // Math.round(newLineWidth * 2) / 2
+                Math.round(newLineWidth)
+            );
+
+            if (thisContextTrans.params.lineWidth != prevLineWidth) {
+                prevLineWidth = thisContextTrans.params.lineWidth;
+                rebuildSceneCallback();
+            }
+        };
+
         const rebuildSceneCallback = function () {
             controllerContextTrans.rebuildScene();
         };
@@ -193,20 +241,16 @@ class AlgoViewСonfiguration {
         };
 
         const changeCharacteristicsBlock = function () {
-            if (thisContextTrans.params.showGraphInfo) {
-                InfoBlockController.changeCharacteristicsBlock(graphInfo);
-            } else {
-                InfoBlockController.changeCharacteristicsBlock(null);
-            }
+            InfoBlockController.changeCharacteristicsBlock(graphInfo);
         };
 
-        const changeInfoBlock = function () {
+        const changeFPSInfoBlock = function () {
             if (thisContextTrans.params.showSystemLoadInfo == false) {
                 InfoBlockController.changeFPSInfoBlock("", "");
             }
         };
 
-        const maxLevel = graphInfo.characteristics.critical_length;
+        const maxLevel = graphInfo.characteristics.critical_path_length;
 
         const levelInc = function () {
             if (thisContextTrans.params.level < maxLevel) {
@@ -229,7 +273,6 @@ class AlgoViewСonfiguration {
 
         const updateLevelValue = function () {
             const floatLevelValue = thisContextTrans.params.level;
-            // console.log("typeof floatLevelValue = ", typeof floatLevelValue);
 
             if (floatLevelValue < 0 || typeof floatLevelValue != "number") {
                 thisContextTrans.params.level = 0;
@@ -250,22 +293,32 @@ class AlgoViewСonfiguration {
          *      ================
          */
 
-        folderViewSettins.add(this.params, "fpsRate", 20, 100).name("FPS rate");
+        folderViewSettins.add(this.params, "fpsRate", 24, 100).name("FPS rate");
 
         folderViewSettins
-            .add(this.params, "lineWidth", 1, 10)
+            .add(this.params, "lineWidth", 1, 6)
             .name("Line width")
-            .onChange(rebuildSceneCallback);
+            .onChange(changeLineWidth);
+
+        folderViewSettins
+            .add(this.params, "showGraphCharacteristics")
+            .name("Show graph info")
+            .onChange(changeCharacteristicsBlock);
+
+        folderViewSettins
+            .add(this.params, "showErrors")
+            .name("Show errors")
+            .onChange(changeCharacteristicsBlock);
+
+        folderViewSettins
+            .add(this.params, "showWarnings")
+            .name("Show warnings")
+            .onChange(changeCharacteristicsBlock);
 
         folderViewSettins
             .add(this.params, "showSystemLoadInfo")
-            .name("Show load info")
-            .onChange(changeInfoBlock);
-
-        folderViewSettins
-            .add(this.params, "showGraphInfo")
-            .name("Show graph info")
-            .onChange(changeCharacteristicsBlock);
+            .name("Show FPS")
+            .onChange(changeFPSInfoBlock);
 
         /**     ===================
          *        Camera Controls
@@ -358,23 +411,25 @@ class AlgoViewСonfiguration {
     }
 }
 
-const config = new AlgoViewСonfiguration();
+const config = new AlgoViewConfiguration();
 
 /** Модель одной вершины. */
 class Vertex {
     /**
      *
-     * @param {number} id
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
+     * @param {Number} id
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} z
      * @param {string} type
-     * @param {number} level
+     * @param {string} info
+     * @param {Number} level
      */
-    constructor(id, x, y, z, type, level) {
+    constructor(id, x, y, z, type, info, level) {
         this.id = id;
         this.pos = new THREE.Vector3(x, y, z);
         this.type = type;
+        this.info = info;
         this.level = level;
     }
 }
@@ -383,11 +438,11 @@ class Vertex {
 class Edge {
     /**
      *
-     * @param {number} id
+     * @param {Number} id
      * @param {Vertex} sourceVertex
      * @param {Vertex} targetVertex
      * @param {string} type
-     * @param {number} level
+     * @param {Number} level
      * @param {boolean} requiresBending
      */
     constructor(id, sourceVertex, targetVertex, type, level, requiresBending) {
@@ -422,7 +477,7 @@ class Graph {
 
     /**
      * Преобразование координат
-     * @param {number} value
+     * @param {Number} value
      * @returns преобразованное значение
      */
     coordinateTransform(value, isVertexShifted = false) {
@@ -442,7 +497,7 @@ class Graph {
             //     element.coordinates[2]
             // );
 
-            const isVertexShifted = false; // element.level == 0;
+            const isVertexShifted = element.info == "extra";
 
             const vertex = new Vertex(
                 element.id,
@@ -458,8 +513,9 @@ class Graph {
                     element.coordinates[2],
                     isVertexShifted
                 ),
-                element.type,
-                element.level
+                element.type, // type: "0" / "1" / ...
+                element.info, // info: "normal" / "extra"
+                element.level // level: 1, 2, 3, ...
             );
 
             this.vertices.set(element.id, vertex);
@@ -468,9 +524,9 @@ class Graph {
 
     /**
      * Проверка на необходимость сдвига вершины
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} z
      */
     // checkVertexForRequiredShift(x, y, z) {
     //     let answer = false;
@@ -594,8 +650,10 @@ class GraphInfo {
     warnings = new Array();
     errors = new Array();
 
-    /** Маркер наличия проблем */
-    thereAreErrorsOrWarnings = false;
+    /** Маркеры наличия проблем */
+    characteristicsIsEmpty = true;
+    thereAreWarnings = false;
+    thereAreErrors = false;
 
     constructor(graphData) {
         this.graphData = graphData;
@@ -603,43 +661,61 @@ class GraphInfo {
         this.fillInCharacteristics();
         this.fillInWarnings();
         this.fillInErrors();
-
-        if (this.warnings.length != 0 || this.errors.length != 0) {
-            this.thereAreErrorsOrWarnings = true;
-        }
     }
 
     fillInCharacteristics() {
         // characteristics:
         //      vertex_num
         //      edge_num
-        //      critical_length
-        //      width
+        //      critical_path_length
+        //      parallel_form_width
 
         for (const property in this.graphData.characteristics) {
-            this.characteristics[property] =
-                this.graphData.characteristics[property];
+            const value = this.graphData.characteristics[property];
+            this.characteristics[property] = value;
+
+            if (this.characteristicsIsEmpty && value != 0) {
+                this.characteristicsIsEmpty = false;
+            }
         }
     }
 
     fillInWarnings() {
+        if (this.graphData.warnings == null) {
+            console.log("graphData.warnings is null");
+            return;
+        }
+
         for (let i = 0; i < this.graphData.warnings.length; i++) {
             const warningStr = this.graphData.warnings[i];
             this.warnings.push(warningStr);
         }
+
+        if (this.warnings.length != 0) {
+            this.thereAreWarnings = true;
+        }
     }
 
     fillInErrors() {
+        if (this.graphData.errors == null) {
+            console.log("graphData.errors is null");
+            return;
+        }
+
         for (let i = 0; i < this.graphData.errors.length; i++) {
             const errorStr = this.graphData.errors[i];
             this.errors.push(errorStr);
+        }
+
+        if (this.errors.length != 0) {
+            this.thereAreErrors = true;
         }
     }
 }
 
 /** Набор инструментов создания графических объектов. */
 class GraphicObjects {
-    static #createMeshLineByGeo(lineGeometry, colorIndex) {
+    static #createMeshLineByGeo(lineGeometry, lineWidth, colorIndex) {
         const meshLine = new MeshLine();
         meshLine.setGeometry(lineGeometry);
 
@@ -649,7 +725,7 @@ class GraphicObjects {
             opacity: 1,
             resolution: config.resolution,
             sizeAttenuation: false,
-            lineWidth: config.params.lineWidth,
+            lineWidth: lineWidth,
         });
 
         const mesh = new THREE.Mesh(meshLine.geometry, material);
@@ -668,16 +744,26 @@ class GraphicObjects {
         config.graph.add(line);
     }
 
-    static #createStraightMeshLine(sourceVector3, targetVector3, colorIndex) {
+    static #createStraightMeshLine(
+        sourceVector3,
+        targetVector3,
+        lineWidth,
+        colorIndex
+    ) {
         const lineGeometry = new THREE.Geometry();
         lineGeometry.vertices.push(sourceVector3);
         lineGeometry.vertices.push(targetVector3);
 
-        this.#createMeshLineByGeo(lineGeometry, colorIndex);
+        this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
     }
 
     /** Создает прямую стрелку по двум векторам */
-    static createStraightArrow(sourceVector3, targetVector3, colorIndex = 3) {
+    static createStraightArrow(
+        sourceVector3,
+        targetVector3,
+        lineWidth,
+        colorIndex
+    ) {
         /** Половина высоты конуса у стрелки + радиус большого шара */
         const arrowShiftLength = 1.8 / 2 + 1.8;
 
@@ -701,6 +787,7 @@ class GraphicObjects {
         this.#createStraightMeshLine(
             sourceVector3,
             croppedTargetVector3,
+            lineWidth,
             colorIndex
         );
 
@@ -789,7 +876,12 @@ class GraphicObjects {
     }
 
     /** Создает кривую стрелку по двум векторам */
-    static createCurvedArrow(sourceVector3, targetVector3, colorIndex = 3) {
+    static createCurvedArrow(
+        sourceVector3,
+        targetVector3,
+        lineWidth,
+        colorIndex
+    ) {
         /** Половина высоты конуса у стрелки + радиус большого шара */
         const arrowShiftLength = 1.8 / 2 + 1.8;
 
@@ -802,8 +894,10 @@ class GraphicObjects {
          *  исходящий из начала координат */
         const len = sourceVector3.distanceTo(targetVector3);
 
-        /** радиус окружности */
-        const r = len * 0.85;
+        /** радиус окружности
+         *  k = 0.5 -- полуокружность
+         *  k = 1.0 -- 1/6 окружности */
+        const r = len * 1.1;
 
         /** координаты центра окружности */
         const x0 = len / 2;
@@ -838,7 +932,7 @@ class GraphicObjects {
         }
 
         // линия
-        this.#createMeshLineByGeo(lineGeometry, colorIndex);
+        this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
 
         const coneLocation = new THREE.Vector3(
             lineGeometry[0],
@@ -869,8 +963,6 @@ class GraphicObjects {
 
     /** Возвращает THREE.Mesh для конуса */
     static #getConeMesh(colorIndex = 3) {
-        // конус
-        // https://customizer.github.io/three.js-doc.ru/geometries/coneBufferGeometry.htm
         // https://threejs.org/docs/#api/en/geometries/ConeGeometry
 
         const coneRadius = 0.6;
@@ -894,34 +986,40 @@ class GraphicObjects {
 
     /**
      * Построение осей координат x, y, z
-     * @param {number} oxAxisLength
-     * @param {number} oyAxisLength
-     * @param {number} oxAxisLength
+     * @param {Number} oxAxisLength
+     * @param {Number} oyAxisLength
+     * @param {Number} oxAxisLength
      */
     static createAxis(oxAxisLength, oyAxisLength, ozAxisLength) {
         this.createStraightArrow(
             new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(oxAxisLength, 0, 0)
+            new THREE.Vector3(oxAxisLength, 0, 0),
+            config.params.axisLineWidth,
+            3
         );
 
         this.createStraightArrow(
             new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(0, oyAxisLength, 0)
+            new THREE.Vector3(0, oyAxisLength, 0),
+            config.params.axisLineWidth,
+            3
         );
 
         this.createStraightArrow(
             new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(0, 0, ozAxisLength)
+            new THREE.Vector3(0, 0, ozAxisLength),
+            config.params.axisLineWidth,
+            3
         );
 
         this.#createAxisText(oxAxisLength, oyAxisLength, ozAxisLength);
     }
 
-    static #getTextParameters(text, fontSize) {
+    static #getTextParameters(text, fontSize, color = "#000000") {
         return {
             alignment: "center",
             backgroundColor: "rgba(0,0,0,0)",
-            color: "#000000",
+            color: color,
             fontFamily: "sans-serif",
             fontSize: fontSize,
             fontStyle: "normal",
@@ -929,17 +1027,17 @@ class GraphicObjects {
             fontWeight: "normal",
             lineGap: 0.25,
             padding: 0.5,
-            strokeColor: "#fff",
-            strokeWidth: 0,
+            strokeColor: "#000000",
+            strokeWidth: 0.02,
             text: text,
         };
     }
 
     /**
      * Построение подписей осей координат x, y, z
-     * @param {number} oxAxisLength
-     * @param {number} oyAxisLength
-     * @param {number} oxAxisLength
+     * @param {Number} oxAxisLength
+     * @param {Number} oyAxisLength
+     * @param {Number} oxAxisLength
      */
     static #createAxisText(oxAxisLength, oyAxisLength, ozAxisLength) {
         const fontSize = 5;
@@ -961,33 +1059,69 @@ class GraphicObjects {
         config.graph.add(label_z);
     }
 
-    /** Создание освещения на сцене */
+    /**
+     * Построение текста на координатах
+     * @param {String} text
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} z
+     * @param {Number} colorIndex
+     */
+    static createCustomText(text, x, y, z, colorIndex) {
+        const fontSize = 4;
+        const colorStr = "#" + colors[colorIndex].toString(16);
+        const parameters = this.#getTextParameters(text, fontSize, colorStr);
+        const label = new THREE.TextSprite(parameters);
+
+        label.position.set(x, y, z);
+        config.graph.add(label);
+    }
+
+    /** Создание освещения на сцене. */
     static createLight() {
         const color = 0xffffff;
-        const intensity = 0.65;
-        const light = new THREE.DirectionalLight(color, intensity);
-        // light.position.set(0, 0, 0);
-        light.target.position.set(-5, -10, -2);
-        config.graph.add(light);
-        config.graph.add(light.target);
+        const intensity1 = 0.65;
+        const intensity2 = 0.5;
+        const target = new THREE.Vector3(-5, -10, -2);
+        const light = new THREE.Object3D();
 
-        // GraphicObjects.createArrow(
-        //     new THREE.Vector3(0, 0, 0),
-        //     new THREE.Vector3(-5, -10, -2),
-        //     7
-        // );
+        const directionalLight1 = new THREE.DirectionalLight(color, intensity1);
+        directionalLight1.target.position.copy(target);
+        light.add(directionalLight1);
+        light.add(directionalLight1.target);
+
+        const directionalLight2 = new THREE.DirectionalLight(color, intensity2);
+        directionalLight2.target.position.copy(target).multiplyScalar(-1);
+        light.add(directionalLight2);
+        light.add(directionalLight2.target);
 
         // https://www.youtube.com/watch?v=T6PhV4Hz0u4
-        const ambientIntensity = 1 - intensity;
+        // Cумма всего света в каждой точке должна быть не более 1
+        const ambientIntensity = 1 - Math.max(intensity1, intensity2);
         const ambientLight = new THREE.AmbientLight(color, ambientIntensity);
-        config.graph.add(ambientLight);
+        light.add(ambientLight);
 
+        config.graph.add(light);
         return light;
     }
 
+    /** Создает куб по заданным координатам */
+    static createCube(x, y, z, colorIndex) {
+        const cubeSize = 2.5;
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+
+        const cubeMat = new THREE.MeshPhongMaterial({
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
     /** Создает сферу по заданным координатам */
-    static createSphere(x, y, z, sphereRadius = 2, colorIndex = 1) {
-        // const sphereRadius = 2;
+    static createSphere(x, y, z, colorIndex) {
+        const sphereRadius = 1.5;
         const sphereWidthDivisions = 16;
         const sphereHeightDivisions = 16;
         const sphereGeo = new THREE.SphereGeometry(
@@ -1001,79 +1135,188 @@ class GraphicObjects {
         });
 
         const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+
         mesh.position.set(x, y, z);
         config.graph.add(mesh);
     }
 
-    /** Создает куб по заданным координатам */
-    static createCube(x, y, z, colorIndex = 1) {
-        const cubeSize = 2;
-        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+    /** Создает тетраэдр по заданным координатам */
+    static createTetrahed(x, y, z, colorIndex, texture = null) {
+        const tetrahedronRadius = 2;
+        const tetrahedronGeo = new THREE.TetrahedronGeometry(tetrahedronRadius);
 
-        // const cubeMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
-        const cubeMat = new THREE.MeshPhongMaterial({
+        const tetrahedronMat = new THREE.MeshPhongMaterial({
+            map: texture,
             color: colors[colorIndex],
         });
 
-        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
+        const mesh = new THREE.Mesh(tetrahedronGeo, tetrahedronMat);
+
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает додекаэдр (двенадцатигранник) по заданным координатам */
+    static createDodecahedron(x, y, z, colorIndex, texture = null) {
+        const dodecahedronRadius = 1.55;
+        const dodecahedronGeo = new THREE.DodecahedronGeometry(
+            dodecahedronRadius
+        );
+
+        const dodecahedronMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(dodecahedronGeo, dodecahedronMat);
+
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает цилиндр по заданным координатам */
+    static createCylinder(x, y, z, colorIndex, texture = null) {
+        // https://threejs.org/docs/#api/en/geometries/CylinderGeometry
+
+        const cylinderGeo = new THREE.CylinderGeometry(0.7, 1.3, 2.4, 20);
+        const cylinderMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(cylinderGeo, cylinderMat);
+
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает тор по заданным координатам */
+    static createTorus(x, y, z, colorIndex, texture = null) {
+        /** https://threejs.org/docs/#api/en/geometries/TorusGeometry
+         *  TorusGeometry( radius, tube, radialSegments, tubularSegments, arc )
+         *  radius - Radius of the torus, from the center of the torus to the center of the tube. Default is 1.
+         *  tube — Radius of the tube. Default is 0.4.
+         *  radialSegments — Default is 12
+         *  tubularSegments — Default is 48.
+         *  arc — Central angle. Default is Math.PI * 2.
+         */
+
+        const torusGeo = new THREE.TorusGeometry(1.4, 0.5, 10, 30);
+
+        const torusMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(torusGeo, torusMat);
+
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает тор всего с 4 сегментами по заданным координатам */
+    static createTorus_4(x, y, z, colorIndex, texture = null) {
+        /** https://threejs.org/docs/#api/en/geometries/TorusGeometry
+         *  TorusGeometry( radius, tube, radialSegments, tubularSegments, arc )
+         *  radius - Radius of the torus, from the center of the torus to the center of the tube. Default is 1.
+         *  tube — Radius of the tube. Default is 0.4.
+         *  radialSegments — Default is 12
+         *  tubularSegments — Default is 48.
+         *  arc — Central angle. Default is Math.PI * 2.
+         */
+
+        const torusGeo = new THREE.TorusGeometry(1.4, 0.6, 4, 4);
+
+        const torusMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            flatShading: true,
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(torusGeo, torusMat);
+
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает тор узелком по заданным координатам */
+    static createTorusKnot(x, y, z, colorIndex, texture = null) {
+        /** https://threejs.org/docs/#api/en/geometries/TorusKnotGeometry
+         *  TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q)
+         *  radius - Radius of the torus. Default is 1.
+         *  tube — Radius of the tube. Default is 0.4.
+         *  tubularSegments — Default is 64.
+         *  radialSegments — Default is 8.
+         *  p — This value determines, how many times the geometry winds around its axis of rotational symmetry. Default is 2.
+         *  q — This value determines, how many times the geometry winds around a circle in the interior of the torus. Default is 3.
+         */
+
+        const torusKnotGeo = new THREE.TorusKnotGeometry(
+            1.1,
+            0.3,
+            100,
+            12,
+            2,
+            3
+        );
+
+        const torusKnotMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            // flatShading: true,
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(torusKnotGeo, torusKnotMat);
+
         mesh.position.set(x, y, z);
         config.graph.add(mesh);
     }
 
     /** Создает октаэдр по заданным координатам */
-    static createOctahedron(x, y, z, colorIndex) {
+    static createOctahedron(x, y, z, colorIndex, texture = null) {
+        // https://threejs.org/docs/#api/en/geometries/OctahedronGeometry
+
+        const octahedronRadius = 1.8;
+        const octahedronGeo = new THREE.OctahedronGeometry(octahedronRadius);
+
+        const octahedronMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            color: colors[colorIndex],
+        });
+
+        const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
+        mesh.position.set(x, y, z);
+        config.graph.add(mesh);
+    }
+
+    /** Создает октаэдр по заданным координатам */
+    static createOctahedronWithTexture(x, y, z, colorIndex) {
         // https://stackoverflow.com/questions/7919516/using-textures-in-three-js
 
         const loader = new THREE.TextureLoader();
         loader.load("./textures/glass_texture_5.jpeg", function (texture) {
-            // https://threejs.org/docs/#api/en/geometries/OctahedronGeometry
-
-            const octahedronRadius = 1.8;
-            const octahedronGeo = new THREE.OctahedronGeometry(
-                octahedronRadius
-            );
-
-            const octahedronMat = new THREE.MeshPhongMaterial({
-                map: texture,
-                color: colors[colorIndex],
-            });
-
-            const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
-            mesh.position.set(x, y, z);
-            config.graph.add(mesh);
+            GraphicObjects.createOctahedron(x, y, z, colorIndex, texture);
         });
     }
-}
 
-// !!! todo перенести DataLoader в отдельный файл
-/** Модель загрузки данных. */
-class DataLoader {
-    static emptyGraphDataTemplate = { vertices: [], edges: [] };
+    /**
+     * Подсчитывает количество полигонов объекта THREE.Mesh
+     * @param {THREE.Mesh} object
+     */
+    static countObjectPolygons(object) {
+        if (!object.isMesh) return 0;
 
-    constructor() {
-        this.graphData = DataLoader.emptyGraphDataTemplate;
-    }
+        const geometry = object.geometry;
 
-    async loadGraphData() {
-        const href = window.location.href; // http://localhost:3001/user/q000/AlgoViewPage.html
-        const mainPath = href.slice(0, href.lastIndexOf("/")); // http://localhost:3001/user/q000
-        const jsonGraphDataUrl = mainPath + "/Json_models/graphData.json"; // http://localhost:3001/user/d000/Json_models/graphData.json
+        let triangles = -1;
 
-        let rawData = "";
+        if (geometry.index != null) {
+            triangles = geometry.index.count / 3;
+        } else if (geometry.attributes != null) {
+            triangles = geometry.attributes.position.count / 3;
+        }
 
-        await $.ajax({
-            type: "GET",
-            url: jsonGraphDataUrl,
-            headers: { "cache-control": "no-cache" }, // !!!
-            success: function (data) {
-                console.log("data from ajax.get = ", data);
-                rawData = data;
-            },
-        });
-
-        // this.graphData = JSON.parse(rawData);
-        this.graphData = rawData;
-        return this.graphData;
+        return triangles;
     }
 }
 
@@ -1133,7 +1376,7 @@ class View {
 
     /** Наполнение сцены светом, осями координат */
     setupSceneView() {
-        const lightContext = GraphicObjects.createLight();
+        const lightContext1 = GraphicObjects.createLight();
 
         // config.controls.addEventListener("change", function () {
         //     const x = config.camera.position.x;
@@ -1172,55 +1415,105 @@ class View {
      * @param {Vertex} vertex - вершина, экземпляр класса `Vertex`.
      */
     buildVertexObject(vertex) {
-        // [old] 0 - октаэдр (входная/выходная вершина)
-        // 1 - маленький шар
-        // 2 - большой шар
-        // 3 - хз пока что
+        // цвета
+        // 1 - мягко желтый
+        // 2 - мягко голубой
+        // 3 - темно голубой
+        // 4 - серый
+        // 6 - красный
+        // 7 - темно желный
+        // 8 - мятный. для входных
 
-        // 1 - yellow
-        // 2 - blue
-        const color =
-            config.params.showLevel && vertex.level == config.params.level
-                ? 2
-                : 1;
+        let color = 1; // дефолт
 
-        if (vertex.level == 0) {
-            GraphicObjects.createOctahedron(
-                vertex.pos.x,
-                vertex.pos.y,
-                vertex.pos.z,
-                color
-            );
-
-            return;
+        if (vertex.type == 0) {
+            color = 8;
+        } else if (config.params.showLevel) {
+            if (vertex.level == config.params.level) {
+                color = 2;
+            } else if (vertex.level <= config.params.level) {
+                color = 4;
+            }
         }
 
         switch (vertex.type) {
+            case "0": {
+                // input/output vertex
+                GraphicObjects.createOctahedron(
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+                    color
+                );
+                break;
+            }
             case "1": {
                 GraphicObjects.createSphere(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-
-                    1.3,
                     color
                 );
                 break;
             }
-
             case "2": {
-                GraphicObjects.createSphere(
+                GraphicObjects.createDodecahedron(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-
-                    1.8,
+                    color
+                );
+                break;
+            }
+            case "3": {
+                GraphicObjects.createCylinder(
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+                    color
+                );
+                break;
+            }
+            case "4": {
+                GraphicObjects.createCube(
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+                    color
+                );
+                break;
+            }
+            case "5": {
+                // GraphicObjects.createTetrahed
+                GraphicObjects.createTorus(
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+                    color
+                );
+                break;
+            }
+            case "6": {
+                GraphicObjects.createTorus_4(
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
+                    color
+                );
+                break;
+            }
+            case "7": {
+                GraphicObjects.createTorusKnot(
+                    vertex.pos.x,
+                    vertex.pos.y,
+                    vertex.pos.z,
                     color
                 );
                 break;
             }
             default: {
-                GraphicObjects.createCube(
+                GraphicObjects.createCustomText(
+                    "?",
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
@@ -1248,12 +1541,14 @@ class View {
             GraphicObjects.createCurvedArrow(
                 edge.sourceVertex.pos,
                 edge.targetVertex.pos,
+                config.params.lineWidth,
                 color
             );
         } else {
             GraphicObjects.createStraightArrow(
                 edge.sourceVertex.pos,
                 edge.targetVertex.pos,
+                config.params.lineWidth,
                 color
             );
         }
@@ -1295,36 +1590,47 @@ class InfoBlockController {
         let content = "";
 
         if (graphInfo != null) {
-            const info = graphInfo.characteristics;
-            const warnings = graphInfo.warnings;
-            const errors = graphInfo.errors;
-
-            let text = "<b><i>Graph characteristics:</i></b><br>";
-            text += "• vertex num: " + info.vertex_num + "<br>";
-            text += "• edge num: " + info.edge_num + "<br>";
-            text += "• critical path length: " + info.critical_length + "<br>";
-            text += "• parallel form width: " + info.width + "<br>";
-
-            if (warnings.length != 0) {
-                text +=
-                    "<br><b><i>Warnings (" + warnings.length + "):</i></b><br>";
-
-                for (let i = 0; i < warnings.length; i++) {
-                    const num = i + 1;
-                    text += "<b>" + num + ":</b> " + warnings[i] + "<br>";
-                }
+            if (
+                config.params.showGraphCharacteristics &&
+                !graphInfo.characteristicsIsEmpty
+            ) {
+                const info = graphInfo.characteristics;
+                content = "<b><i>Graph characteristics:</i></b><br>";
+                content += "• vertex num: " + info.vertex_num + "<br>";
+                content += "• edge num: " + info.edge_num + "<br>";
+                content +=
+                    "• critical path length: " +
+                    info.critical_path_length +
+                    "<br>";
+                content +=
+                    "• parallel form width: " +
+                    info.parallel_form_width +
+                    "<br><br>";
             }
 
-            if (errors.length != 0) {
-                text += "<br><b><i>Errors (" + errors.length + "):</i></b><br>";
+            if (config.params.showErrors && graphInfo.thereAreErrors) {
+                const errors = graphInfo.errors;
+                content += "<b><i>Errors (" + errors.length + "):</i></b><br>";
 
                 for (let i = 0; i < errors.length; i++) {
                     const num = i + 1;
-                    text += "<b>" + num + ":</b> " + errors[i] + "<br>";
+                    content += "<b>" + num + ":</b> " + errors[i] + "<br>";
                 }
+
+                content += "<br>";
             }
 
-            content = text; //"<h4>" + text + "</h4>";
+            if (config.params.showWarnings && graphInfo.thereAreWarnings) {
+                const warnings = graphInfo.warnings;
+
+                content +=
+                    "<b><i>Warnings (" + warnings.length + "):</i></b><br>";
+
+                for (let i = 0; i < warnings.length; i++) {
+                    const num = i + 1;
+                    content += "<b>" + num + ":</b> " + warnings[i] + "<br>";
+                }
+            }
         }
 
         document.getElementById("textInfoBlock_0").innerHTML = content;
@@ -1383,11 +1689,8 @@ class App {
         config.setControllerContext(this.controller);
         config.setupGUI(this.model.graphInfo);
 
-        if (config.params.showGraphInfo) {
-            InfoBlockController.changeCharacteristicsBlock(
-                this.model.graphInfo
-            );
-        }
+        // if (config.params.showGraphInfo)
+        InfoBlockController.changeCharacteristicsBlock(this.model.graphInfo);
 
         this.appManager.setDoneBuildStatus();
     }

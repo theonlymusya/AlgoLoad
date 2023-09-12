@@ -53,7 +53,7 @@ VertexId Block::get_vertex_id(CoordType i, CoordType j, CoordType k) {
     if (i + i_shift_ < 0 || j + j_shift_ < 0 || k + k_shift_ < 0 || i + i_shift_ >= coords_field_.size() ||
         j + j_shift_ >= coords_field_[0].size() || k + k_shift_ >= coords_field_[0][0].size()) {
         std::string msg = "Vertex with current coords = [" + std::to_string(i) + ", " + std::to_string(j) + ", " +
-                          std::to_string(k) + "] will be ignored, since it exceed defined range of arguments";
+                          std::to_string(k) + "] will be ignored, since it is out of range of arguments";
         logger.log_warn_msg(func_name, file_name, msg);
         logger.add_user_warning(msg);
         return ignore_vertex_id;
@@ -91,6 +91,7 @@ VertexId Block::get_or_create_current_vertex(VertexMapManager& vertices_manager,
               "] have been created earlier. Create a new i/o vertex with a shift.";
         logger.log_warn_msg(func_name, file_name, msg);
         logger.add_user_warning(msg);
+        vertices_manager.add_info(vertex_id, "extra");
     }
     vertex_id = create_vertex(vertices_manager, graph_character_manager, block_id, i, j, k, type);
 
@@ -153,7 +154,7 @@ VertexId Block::get_or_create_source_vertex(VertexMapManager& vertices_manager,
     }
     msg = "Source vertex with physical coords [" + std::to_string(i + i_shift_) + ", " + std::to_string(j + j_shift_) +
           ", " + std::to_string(k + k_shift_) +
-          "] will be created as i/o vertex, since vertex with current coords doesn’t exist";
+          "] will be created as i/o vertex, since vertex with current coords does not exist";
     logger.log_warn_msg(func_name, file_name, msg);
     logger.add_user_warning(msg);
     vertex_id = create_vertex(vertices_manager, graph_charact_manager, block_id, i, j, k, "0");
@@ -175,7 +176,7 @@ void Block::create_edge(VertexId src_id,
 
     // Edge* new_edge_ptr = new Edge{src_id, target_id};
     Edge* new_edge_ptr;
-    if (vertices_manager.get_vertex_level(src_id)) {
+    if (vertices_manager.get_vertex_type(src_id) != "0") {
         new_edge_ptr = new Edge{src_id, target_id, "1"};
         graph_character_manager.inc_edges_counter();
     } else {
@@ -404,10 +405,12 @@ void Block::main_cycle(const BlockTagInfo& block_info,
                             //     logger.log_info_finish_msg("changing target vertex levels");
                             // }
                             vertices_manager.add_vertex_level(vertex_id, level);
+                            // if (level)
+                            //     graph_charact_manager.inc_vertices_counter();
                             // if vertex has level = 0 these vertices are ignored, since level = 0 is not
                             // considered to be a part of the graph (extra part)
                             graph_charact_manager.inc_level_vertex_counter(level);
-                            graph_charact_manager.add_critical_lenght(level);
+                            graph_charact_manager.add_critical_lenght(level - 1);
                             logger.log_info_finish_msg("determining current vertex level");
                         }
                     }
