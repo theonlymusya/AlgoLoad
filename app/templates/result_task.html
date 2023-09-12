@@ -18,18 +18,20 @@
     <button
         onclick="document.getElementById('frameId').src = document.getElementById('frameId').src;"
     >
-        Обновить
+        Reset
     </button>
 </div>
 
-<iframe
-    id="frameId"
-    src="{{ source }}"
-    width="1200"
-    height="800"
-    scrolling="no"
-    frameborder="1"
-></iframe>
+<div style="width: 100%; height: 75vh">
+    <iframe
+        id="frameId"
+        src="{{ source }}"
+        width="100%"
+        height="100%"
+        scrolling="no"
+        frameborder="1"
+    ></iframe>
+</div>
 
 <div class="xml_code_block">
     <span id="xml_code-button">

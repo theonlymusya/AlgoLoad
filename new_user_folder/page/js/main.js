@@ -1,15 +1,15 @@
 "use strict";
 
-const CameraTypes = {
-    perspective: "Perspective",
-    orthographic: "Orthographic",
-};
-
 const colors = [
     0xed6a5a, 0xf4f1bb, 0x9bc1bc, 0x5ca4a9, 0xe6ebe0, 0xf0b67f, 0xfe5f55,
     0xd6d1b1, 0xc7efcf, 0xeef5db, 0x50514f, 0xf25f5c, 0xffe066, 0x247ba0,
     0x70c1b3,
 ];
+
+const CameraTypes = {
+    perspective: "Perspective",
+    orthographic: "Orthographic",
+};
 
 class Params {
     constructor() {
@@ -72,7 +72,7 @@ class AlgoViewConfiguration {
     }
 
     configuringThreeJS() {
-        this.container = document.getElementById("container");
+        this.container = document.getElementById("algoview_container");
         this.scene = new THREE.Scene();
 
         this.camera = this.createCamera();
@@ -470,6 +470,7 @@ class Graph {
         this.graphData = graphData;
 
         this.createVertices();
+        this.shiftProblemVertices();
         this.createEdges();
 
         this.size = this.getSize();
@@ -520,6 +521,27 @@ class Graph {
 
             this.vertices.set(element.id, vertex);
         }
+    }
+
+    // tmp
+    shiftProblemVertices() {
+        this.vertices.forEach(function (vertex) {
+            if (vertex.info == "normal") return;
+
+            console.log("extra vertex id: ", vertex.id);
+
+            // const isVertexShifted = this.checkVertexForRequiredShift(
+            //     element.coordinates[0],
+            //     element.coordinates[1],
+            //     element.coordinates[2]
+            // );
+
+            // const isVertexShifted = element.info == "extra";
+            // this.coordinateTransform(
+            //     element.coordinates[0],
+            //     isVertexShifted
+            // ),
+        });
     }
 
     /**
@@ -1765,25 +1787,20 @@ class FPSManager {
 
 const fpsManager = new FPSManager();
 
-// function resizeRendererToDisplaySize(renderer) {
-//     const canvas = renderer.domElement;
-//     const pixelRatio = window.devicePixelRatio;
-//     const width = (canvas.clientWidth * pixelRatio) | 0;
-//     const height = (canvas.clientHeight * pixelRatio) | 0;
-//     const needResize = canvas.width !== width || canvas.height !== height;
-//     if (needResize) {
-//         renderer.setSize(width, height, false);
-//     }
-//     return needResize;
-// }
+function resizeRendererToDisplaySize() {
+    const canvas = config.renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+
+    if (needResize) {
+        config.renderer.setSize(width, height, false);
+        config.camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        config.camera.updateProjectionMatrix();
+    }
+}
 
 async function renderLoop() {
-    // if (resizeRendererToDisplaySize(renderer)) {
-    //     const canvas = renderer.domElement;
-    //     camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    //     camera.updateProjectionMatrix();
-    // }
-
     if (app.appManager.buildStatus != "done") {
         console.log("Waiting for the application to finish building.");
         await sleep(100);
@@ -1792,6 +1809,7 @@ async function renderLoop() {
     }
 
     const startTime = performance.now();
+    resizeRendererToDisplaySize();
 
     if (!config.params.pause) {
         if (config.params.autoRotate) {
