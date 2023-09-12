@@ -217,6 +217,7 @@ def upload_task():
             os.makedirs(
                 cur_abs_path + usr_pge_path + "/Json_models", mode=0x777, exist_ok=True
             )
+
         # Нужно записать в эту директорию загнанные данные и запустить архитектора.
         if os.path.exists(cur_abs_path + usr_tsk_path):
             # Запись комментария юзверя
@@ -247,13 +248,13 @@ def upload_task():
                 pass
 
             if graph_config_file.endswith(".json"):
-                print(f"*\n*\n*\n>>>>>>>>>>>> Загрузили .json")
+                print(f"*\n*\n*\n>>>>>>> Загрузили .json\n*")
                 os.replace(graph_config_file, cpp_output_file_path)
             else:  # новый архитектор
                 graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
                 os_command_new_cpp = f"{graph_appgen_path_new_cpp} {graph_config_file} {cpp_output_file_path}"
 
-                print(f"*\n*\n*\n>>>>>>>>>>>> OS run {os_command_new_cpp}")
+                print(f"*\n*\n*\n>>>>>>> OS run {os_command_new_cpp}\n*")
                 os.system(os_command_new_cpp)
 
             # сохранение таска в бд
@@ -267,9 +268,6 @@ def upload_task():
         )
 
     return render_template("upload_task.html", title="Загрузка задания", form=form)
-
-
-# >>>>>>> main
 
 
 @bluePrint.route("/receive_task", methods=["GET"])

@@ -3,6 +3,10 @@
 # logs
 *.log.*
 
+# все пользователи кроме рута
+/volume/userdata/*
+!/volume/userdata/ucmc2020ssRoot
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,macos,linux,windows,pycharm,c++,node,flask
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,macos,linux,windows,pycharm,c++,node,flask
 

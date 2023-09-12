@@ -13,7 +13,7 @@ class Config(object):
     # Ключ безопасности - защита от CSRF
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
 
-    # Решение проблем с werkzeug.exceptions.NotFound
+    # Решение (?) проблем с werkzeug.exceptions.NotFound 
     # https://github.com/apache/superset/issues/20319
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_HTTPONLY = True
