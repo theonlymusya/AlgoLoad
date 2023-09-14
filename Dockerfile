@@ -26,7 +26,7 @@ WORKDIR /home/flask_skipod
 
 
 COPY --chown=flask_skipod:flask_skipod app app
-COPY --chown=flask_skipod:flask_skipod scripts scripts
+# COPY --chown=flask_skipod:flask_skipod scripts scripts
 # COPY --chown=flask_skipod:flask_skipod architect_old architect_old
 COPY --chown=flask_skipod:flask_skipod architect architect
 COPY --chown=flask_skipod:flask_skipod migrations migrations
@@ -37,16 +37,16 @@ COPY --chown=flask_skipod:flask_skipod requirements.txt flask_skipod.py config.p
 #COPY --chown=flask_skipod:flask_skipod requirements.txt app.db flask_skipod.py config.py Folders_create.py boot.sh ./
 
 
-RUN chmod -R 777 app scripts architect migrations logs new_user_folder\
+RUN chmod -R 777 app architect migrations logs new_user_folder\
     flask_skipod.py config.py Folders_create.py boot.sh
 #!    app.db flask_skipod.py config.py Folders_create.py boot.sh
 
-# компиляция ядра
+# компиляция архитектора
 # RUN (rm -rf scripts/main && cd ./architect && make && mv main ../scripts && cd ..)
-RUN rm -rf scripts/main
-RUN rm -rf scripts/*.o
+RUN rm -rf architect/main
+RUN rm -rf architect/*.o
 RUN (cd ./architect && make)
-RUN mv ./architect/main ./scripts
+# RUN mv ./architect/main ./scripts
 
 # установка нужных библиотек 
 RUN python3 -m venv venv

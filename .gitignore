@@ -1,5 +1,6 @@
-*_ignore
-*_old
+*_ignore*
+*_old*
+
 # logs
 *.log.*
 

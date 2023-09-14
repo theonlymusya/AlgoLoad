@@ -247,7 +247,8 @@ def upload_task():
                 print(f"*\n*\n*\n>>>>>>> Загрузили .json\n*")
                 os.replace(graph_config_file, cpp_output_file_path)
             else:  # новый архитектор
-                graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
+                # graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
+                graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
                 os_command_new_cpp = f"{graph_appgen_path_new_cpp} {graph_config_file} {cpp_output_file_path}"
 
                 print(f"*\n*\n*\n>>>>>>> OS run {os_command_new_cpp}\n*")
