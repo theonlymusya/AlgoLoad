@@ -232,10 +232,6 @@ def upload_task():
             graph_name = form.file_data.data.filename
             form.file_data.data.save(cur_abs_path + usr_tsk_path + "/" + graph_name)
 
-            # =========================================================
-            #                       algoview 2.0
-            # =========================================================
-
             # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
             graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
             graph_output_dirs = cur_abs_path + usr_pge_path + "/Json_models"
@@ -290,7 +286,6 @@ def receive_task():
             fd = os.open(
                 cur_abs_path + usr_tsk_path + "/" + current_user.task_file, os.O_RDONLY
             )
-            # >>>>>>> main
             bytes_data = os.read(fd, 16384)
             xml_code = bytes_data.decode("utf-8")
         except:
@@ -299,9 +294,6 @@ def receive_task():
     # Настройка пути к визуализационной странице и рендер всего ресурса
     # frame_address = "/user/" + current_user.username + "/get_data" # не работает ваще
     frame_address = "/user/" + current_user.username + "/AlgoViewPage.html"
-
-    # frame_address = '/userdata/' + current_user.username + '/page'
-    # print(request.args.get('graph_name'))
 
     return render_template(
         "result_task.html",

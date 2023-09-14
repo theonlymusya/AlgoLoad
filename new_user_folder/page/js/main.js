@@ -3,7 +3,7 @@
 const colors = [
     0xed6a5a, 0xf4f1bb, 0x9bc1bc, 0x5ca4a9, 0xe6ebe0, 0xf0b67f, 0xfe5f55,
     0xd6d1b1, 0xc7efcf, 0xeef5db, 0x50514f, 0xf25f5c, 0xffe066, 0x247ba0,
-    0x70c1b3,
+    0x70c1b3, 0xababab, 0xc2b851,
 ];
 
 const CameraTypes = {
@@ -22,10 +22,11 @@ class Params {
         this.showSystemLoadInfo = true;
 
         /** уровень ярусно параллельной формы */
-        this.level = 1;
+        this.level = 0;
         this.showLevel = true;
+        this.paintIO = false; // красить ли io объекты в цвет уровня
 
-        this.defaultLineWidth = 2.5;
+        this.defaultLineWidth = 2;
         this.lineWidth;
         this.axisLineWidth;
         this.setDefaultLineWidth();
@@ -251,23 +252,21 @@ class AlgoViewConfiguration {
             }
         };
 
-        const minLevel = 1;
-        const maxLevel = graphInfo.characteristics.critical_path_length;
+        const minLevel = 0;
+        const maxLevel = graphInfo.characteristics.graph_depth;
 
         const levelInc = function () {
             if (thisContextTrans.params.level < maxLevel) {
                 thisContextTrans.params.level += 1;
+                levelCounter.setValue(thisContextTrans.params.level);
             }
-
-            levelCounter.setValue(thisContextTrans.params.level);
         };
 
         const levelDec = function () {
             if (thisContextTrans.params.level > minLevel) {
                 thisContextTrans.params.level -= 1;
+                levelCounter.setValue(thisContextTrans.params.level);
             }
-
-            levelCounter.setValue(thisContextTrans.params.level);
         };
 
         const levelControllerObj = { levelInc: levelInc, levelDec: levelDec };
@@ -288,7 +287,12 @@ class AlgoViewConfiguration {
 
             if (thisContextTrans.params.level != prevLevelValue) {
                 prevLevelValue = thisContextTrans.params.level;
-                rebuildSceneCallback();
+
+                if (thisContextTrans.params.showLevel) {
+                    rebuildSceneCallback();
+                } else {
+                    showLevelController.setValue(true);
+                }
             }
         };
 
@@ -364,9 +368,14 @@ class AlgoViewConfiguration {
          *      ==================
          */
 
-        folderLevelControls
+        const showLevelController = folderLevelControls
             .add(this.params, "showLevel")
-            .name("Show Level")
+            .name("Show levels")
+            .onChange(rebuildSceneCallback);
+
+        folderLevelControls
+            .add(this.params, "paintIO")
+            .name("Paint I/O")
             .onChange(rebuildSceneCallback);
 
         const levelCounter = folderLevelControls
@@ -699,6 +708,16 @@ class Graph {
 
         return sizeVector3;
     }
+
+    getGraphDepth() {
+        let maxLevel = 0;
+
+        this.vertices.forEach(function (vertex) {
+            if (vertex.level > maxLevel) maxLevel = vertex.level;
+        });
+
+        return maxLevel;
+    }
 }
 
 /** Модель с данными о графе, предупреждениями и ошибками*/
@@ -726,6 +745,8 @@ class GraphInfo {
         //      edge_num
         //      critical_path_length
         //      parallel_form_width
+
+        // TODO: add graph_depth
 
         for (const property in this.graphData.characteristics) {
             const value = this.graphData.characteristics[property];
@@ -814,12 +835,58 @@ class GraphicObjects {
         this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
     }
 
+    static #createStraightDottedMeshLine(
+        sourceVector3,
+        targetVector3,
+        lineWidth,
+        colorIndex
+    ) {
+        const lineVector3 = new THREE.Vector3().subVectors(
+            targetVector3,
+            sourceVector3
+        );
+
+        const strokeLength = 1.5;
+        const n = Math.round(lineVector3.length() / strokeLength / 2) * 2 + 1;
+        lineVector3.divideScalar(n);
+
+        const xs = Array.from(
+            { length: n + 1 },
+            (x, i) => sourceVector3.x + lineVector3.x * i
+        );
+
+        const ys = Array.from(
+            { length: n + 1 },
+            (x, i) => sourceVector3.y + lineVector3.y * i
+        );
+
+        const zs = Array.from(
+            { length: n + 1 },
+            (x, i) => sourceVector3.z + lineVector3.z * i
+        );
+
+        const lineGeometry = new Float32Array(6);
+
+        for (let i = 0; i < n; i += 2) {
+            lineGeometry[0] = xs[i];
+            lineGeometry[1] = ys[i];
+            lineGeometry[2] = zs[i];
+            lineGeometry[3] = xs[i + 1];
+            lineGeometry[4] = ys[i + 1];
+            lineGeometry[5] = zs[i + 1];
+
+            // 1 штрих
+            this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
+        }
+    }
+
     /** Создает прямую стрелку по двум векторам */
     static createStraightArrow(
         sourceVector3,
         targetVector3,
         lineWidth,
-        colorIndex
+        colorIndex,
+        dotted
     ) {
         /** Половина высоты конуса у стрелки + радиус большого шара */
         const arrowShiftLength = 1.8 / 2 + 1.8;
@@ -841,12 +908,22 @@ class GraphicObjects {
         );
 
         // линия
-        this.#createStraightMeshLine(
-            sourceVector3,
-            croppedTargetVector3,
-            lineWidth,
-            colorIndex
-        );
+
+        if (dotted) {
+            this.#createStraightDottedMeshLine(
+                sourceVector3,
+                croppedTargetVector3,
+                lineWidth,
+                colorIndex
+            );
+        } else {
+            this.#createStraightMeshLine(
+                sourceVector3,
+                croppedTargetVector3,
+                lineWidth,
+                colorIndex
+            );
+        }
 
         // конус
         this.#createCone(croppedTargetVector3, targetVector3, colorIndex);
@@ -937,7 +1014,8 @@ class GraphicObjects {
         sourceVector3,
         targetVector3,
         lineWidth,
-        colorIndex
+        colorIndex,
+        dotted
     ) {
         /** Половина высоты конуса у стрелки + радиус большого шара */
         const arrowShiftLength = 1.8 / 2 + 1.8;
@@ -1390,6 +1468,10 @@ class Model {
 
         this.graph = new Graph(this.graphData);
         this.graphInfo = new GraphInfo(this.graphData);
+
+        // tmp solution
+        // TODO: получать глубину графа из json
+        this.graphInfo.characteristics.graph_depth = this.graph.getGraphDepth();
     }
 }
 
@@ -1480,15 +1562,17 @@ class View {
         // 6 - красный
         // 7 - темно желный
         // 8 - мятный. для входных
+        // 15 - темно серый
+        // 16 - золотой
 
         let color = 1; // дефолт
 
-        if (vertex.type == 0) {
+        if (vertex.type == 0 && !config.params.paintIO) {
             color = 8;
         } else if (config.params.showLevel) {
             if (vertex.level == config.params.level) {
                 color = 2;
-            } else if (vertex.level <= config.params.level) {
+            } else if (vertex.level < config.params.level) {
                 color = 4;
             }
         }
@@ -1586,17 +1670,21 @@ class View {
      * @param {Edge} edge - ребро, экземпляр класса `Edge`.
      */
     buildEdgeObject(edge) {
-        // 1 - yellow
-        // 2 - blue
-        // 6 - red
-
         // default
-        let color = 6;
+        let color = 15; // 6;
         let lineWidth = config.params.lineWidth;
+        let dotted = false;
 
-        if (config.params.showLevel && edge.level == config.params.level) {
-            color = 2;
-            lineWidth = config.params.lineWidth * 1.8;
+        if (edge.type == 0 && !config.params.paintIO) {
+            // color = 8;
+            // dotted = true;
+        } else if (config.params.showLevel) {
+            if (edge.level == config.params.level) {
+                color = 6;
+                lineWidth = config.params.lineWidth * 1.4;
+            } else if (edge.level > config.params.level) {
+                color = 16;
+            }
         }
 
         if (edge.requiresBending) {
@@ -1604,14 +1692,16 @@ class View {
                 edge.sourceVertex.pos,
                 edge.targetVertex.pos,
                 lineWidth,
-                color
+                color,
+                dotted
             );
         } else {
             GraphicObjects.createStraightArrow(
                 edge.sourceVertex.pos,
                 edge.targetVertex.pos,
                 lineWidth,
-                color
+                color,
+                dotted
             );
         }
     }
