@@ -1,55 +1,58 @@
-{% extends "admin_base.html" %}
+{% extends "admin_base.html" %} {% import 'bootstrap/wtf.html' as wtf %} {%
+block head %} {{ super() }}
+<link
+    rel="stylesheet"
+    type="text/css"
+    href="{{ url_for('static',filename='css/admin/users.css') }}"
+/>
+<script src="{{ url_for('static',filename='js/admin/users.js') }}"></script>
 
-{% import 'bootstrap/wtf.html' as wtf %}
-{% block head %}
-    {{ super() }}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/admin/users.css') }}">
-    <script src="{{ url_for('static',filename='js/admin/users.js') }}"></script>
-
-{% endblock %}
-
-
-{% block app_content %}
-    {% block leftNavBar %}
-    {% endblock %}
-    <h1>Пользователи</h1>
-    <div class="row users-table">
-        <div class="table_row table-header">
-{#            <span class="select-input">#}
-{#                <input type="button" id="delete_users" style="display: none">#}
-{#                <label for="delete_users"><img src="{{ url_for('static', filename='images/delete.png') }}"></label>#}
-{#            </span>#}
-            <span style="width: 10%"></span>
-            <span class="login"><p>Логин</p></span>
-            <span class="last-seen"><p>Последнее посещение</p></span>
-            <span class="var-name"><p>Вариант</p></span>
-        </div>
-        {#        {% id = 0 %}#}
-        {% for user in arUsers %}
-            {#            {% id++ %}#}
-            <div class="table_row">
-                {#                <span>{{ id }}</span>#}
-                <span class="select-input content"><input type="checkbox"></span>
-                <span class="login"><p>{{ user.username }}</p></span><span
-                    class="last-seen"><p>{{ user.last_seen }}</p></span>
-                <span class="var-name">
-                    <p>
-                        {% if not user.var_name %}
-                        Варианты не выдаются
-                        {% else %}
-                        <a href="{{ url_for('main.download_var', username=user.username) }}"> {{ user.var_name }}</a>
-                        {% endif %}
-                    </p>
-                </span>
-            </div>
-        {% endfor %}
+{% endblock %} {% block app_content %} {% block leftNavBar %} {% endblock %}
+<h1>Пользователи</h1>
+<div class="row users-table">
+    <div class="table_row table-header">
+        {#
+        <span class="select-input"
+            >#} {#
+            <input type="button" id="delete_users" style="display: none" />#} {#
+            <label for="delete_users"
+                ><img
+                    src="{{ url_for('static', filename='images/delete.png') }}" /></label
+            >#} {# </span
+        >#}
+        <span style="width: 10%"></span>
+        <span class="login"><p>Логин</p></span>
+        <span class="last-seen"><p>Последнее посещение</p></span>
+        <span class="var-name"><p>Вариант</p></span>
     </div>
-    <div class="edit-block">
-        <div id="reset_password">Восстановить пароли выбранных пользователей</div>
-        <div id="delete_users">Удалить выбранных пользователей</div>
-        <input id="mask_for_select">
-        <label for="mask_for_select">ucmc2023*</label>
-        <div id="select_by_mask">Выбрать пользователей по маске</div>
-        <div id="unselect">Отменить выбор</div>
+    {# {% id = 0 %}#} {% for user in arUsers %} {# {% id++ %}#}
+    <div class="table_row">
+        {# <span>{{ id }}</span>#}
+        <span class="select-input content"><input type="checkbox" /></span>
+        <span class="login"><p>{{ user.username }}</p></span
+        ><span class="last-seen"><p>{{ user.last_seen }}</p></span>
+        <span class="var-name">
+            <p>
+                {% if not user.var_name %} Варианты не выдаются {% else %}
+                <a
+                    href="{{ url_for('main.download_var', username=user.username) }}"
+                >
+                    {{ user.var_name }}</a
+                >
+                {% endif %}
+            </p>
+        </span>
     </div>
+    {% endfor %}
+</div>
+<div class="edit-block">
+    <div id="reset_password">
+        Перегенерировать пароли выбранных пользователей
+    </div>
+    <div id="delete_users">Удалить выбранных пользователей</div>
+    <input id="mask_for_select" />
+    <label for="mask_for_select">ucmc2023*</label>
+    <div id="select_by_mask">Выбрать пользователей по маске</div>
+    <div id="unselect">Отменить выбор</div>
+</div>
 {% endblock %}
