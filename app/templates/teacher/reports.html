@@ -2,7 +2,7 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/admin/report.css') }}">
-    <script src="{{ url_for('static',filename='js/admin/report.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/teacher/report.js') }}"></script>
 {% endblock %}
 
 {% block app_content %}
@@ -15,8 +15,7 @@
     <div class="last-reports row">
 
         <div class="table_row table-header">
-            <span class="select-input content"><input type="checkbox">
-            </span>
+
             <span class="report-user filter" filter-data="report-user"><p>Пользователь</p>
                 <img class="img-up" src="{{ url_for('static',filename='images/wing.png') }}">
                 <img class="img-down" src="{{ url_for('static',filename='images/wing.png') }}">
@@ -39,7 +38,6 @@
         </div>
         {% for report in reports %}
             <div class="table_row table-content">
-                <span class="select-input content"><input type="checkbox"></span>
                 <span class="report-user"><p>{{ report['user'] }}</p></span>
                 <span class="report-name">
                 <a href="/admin/reports/{{ report['report_name'] }}?user={{ report['user'] }}"
