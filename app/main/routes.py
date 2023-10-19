@@ -7,7 +7,7 @@ from flask import (
     url_for,
     request,
     current_app,
-    make_response
+    make_response,
 )
 from flask_login import current_user, login_required
 from datetime import datetime
@@ -32,15 +32,21 @@ def index():
 
 @bluePrint.route("/favicon.ico")
 def favicon():
-    # https://stackoverflow.com/questions/48863061/favicon-ico-results-in-404-error-in-flask-app
-
     cur_abs_path = os.path.abspath(os.path.curdir)
-    # usr_tsk_path = "/volume/userdata/" + current_user.local_folder + "/task"
 
-    send_from_directory(
-        directory=cur_abs_path + "/static",
+    return send_from_directory(
+        directory=cur_abs_path + "/app/static",
         filename="favicon.ico",
         mimetype="image/vnd.microsoft.icon",
+    )
+
+
+@bluePrint.route("/logs", methods=["GET"])
+def getAllLogs():
+    cur_abs_path = os.path.abspath(os.path.curdir)
+
+    return send_from_directory(
+        directory=cur_abs_path + "/logs", filename="microbial.log"
     )
 
 
@@ -57,7 +63,7 @@ def before_request():
 # Пути к ресурсным файлам юзверя
 @bluePrint.route("/user/<username>/<path:path>", methods=["GET"])
 def send_textures(username, path):
-    print(f">>> [GET] path = {path}")
+    # print(f">>> [GET] path = {path}")
 
     # Определяем, в какой папке лежат данные для нашего пользователя
     cur_user = User.query.filter_by(username=username).first_or_404()
@@ -68,7 +74,7 @@ def send_textures(username, path):
         + "/page"
     )
 
-    print(f"cur_folder = {cur_folder}")
+    # print(f"cur_folder = {cur_folder}")
 
     # return send_from_directory(
     #     directory="/home/flask_skipod/volume/vars",
@@ -87,7 +93,7 @@ def render_static(username):
     cur_dir = os.path.abspath(cur_dir)
     cur_dir = os.path.realpath(cur_dir)
     cur_folder = cur_dir + "/volume/userdata/" + cur_user.local_folder + "/page"
-    print("=======> ", cur_folder + "/page.html")
+    # print("=======> ", cur_folder + "/page.html")
     return send_from_directory(cur_folder, "/page.html")
 
 
@@ -125,17 +131,21 @@ def download(filename):
 @bluePrint.route("/upload_report", methods=["GET", "POST"])
 @login_required
 def upload_report():
-    if request.method == 'POST':
-
+    if request.method == "POST":
         # Отчёт уже был проверен
-        if Report.query.filter_by(user_id=current_user.id).count() != 0 and Report.query.filter_by(user_id=current_user.id).first().mark != None:
-            return make_response('Отчёт уже проверен, загрузка нового невозможна.', 500)
+        if (
+            Report.query.filter_by(user_id=current_user.id).count() != 0
+            and Report.query.filter_by(user_id=current_user.id).first().mark != None
+        ):
+            return make_response("Отчёт уже проверен, загрузка нового невозможна.", 500)
 
         file_is_uploaded = False
-        file = request.files['file']
+        file = request.files["file"]
 
-        save_path = "volume/userdata/" + current_user.local_folder + "/reports/" + file.filename
-        current_chunk = int(request.form['dzchunkindex'])
+        save_path = (
+            "volume/userdata/" + current_user.local_folder + "/reports/" + file.filename
+        )
+        current_chunk = int(request.form["dzchunkindex"])
 
         # If the file already exists it's ok if we are appending to it,
         # but not if it's new file that would overwrite the existing one
@@ -144,48 +154,64 @@ def upload_report():
             os.remove(save_path)
 
         try:
-            with open(save_path, 'ab') as f:
-                f.seek(int(request.form['dzchunkbyteoffset']))
+            with open(save_path, "ab") as f:
+                f.seek(int(request.form["dzchunkbyteoffset"]))
                 f.write(file.stream.read())
         except OSError:
             # log.exception will include the traceback so we can see what's wrong
-            print('Could not write to file')
-            return make_response(("Not sure why,"
-                                  " but we couldn't write the file to server", 500))
+            print("Could not write to file")
+            return make_response(
+                ("Not sure why," " but we couldn't write the file to server", 500)
+            )
 
-        total_chunks = int(request.form['dztotalchunkcount'])
+        total_chunks = int(request.form["dztotalchunkcount"])
 
         if current_chunk + 1 == total_chunks:
             # This was the last chunk, the file should be complete and the size we expect
-            if os.path.getsize(save_path) != int(request.form['dztotalfilesize']):
-                print(f"File {file.filename} was completed, "
-                      f"but has a size mismatch."
-                      f"Was {os.path.getsize(save_path)} but we"
-                      f" expected {request.form['dztotalfilesize']} ")
-                return make_response(('При отправке произошла ошибка, попробуте отправить повторно.', 500))
+            if os.path.getsize(save_path) != int(request.form["dztotalfilesize"]):
+                print(
+                    f"File {file.filename} was completed, "
+                    f"but has a size mismatch."
+                    f"Was {os.path.getsize(save_path)} but we"
+                    f" expected {request.form['dztotalfilesize']} "
+                )
+                return make_response(
+                    (
+                        "При отправке произошла ошибка, попробуте отправить повторно.",
+                        500,
+                    )
+                )
             else:
-                print(f'File {file.filename} has been uploaded successfully')
+                print(f"File {file.filename} has been uploaded successfully")
                 file_is_uploaded = True
         else:
-            print(f'Chunk {current_chunk + 1} of {total_chunks} '
-                  f'for file {file.filename} complete')
+            print(
+                f"Chunk {current_chunk + 1} of {total_chunks} "
+                f"for file {file.filename} complete"
+            )
 
         if file_is_uploaded:
-            upload_file = request.files['file']
+            upload_file = request.files["file"]
             # Определим вспомогательные переменные
             cur_abs_path = os.path.abspath(os.path.curdir)
-            usr_report_path = "/volume/userdata/" + current_user.local_folder + "/reports"
+            usr_report_path = (
+                "/volume/userdata/" + current_user.local_folder + "/reports"
+            )
             # Нужно записать в директорию /reports загнанные данные.
             report_name = upload_file.filename
             # Отчёты ранее не загружались
             if Report.query.filter_by(user_id=current_user.id).count() == 0:
-                new_report = Report(report_name=report_name, user_id=current_user.id,
-                                    date_creation=datetime.utcnow(), var_num=current_user.var_num,
-                                    var_file=current_user.var_file)
+                new_report = Report(
+                    report_name=report_name,
+                    user_id=current_user.id,
+                    date_creation=datetime.utcnow(),
+                    var_num=current_user.var_num,
+                    var_file=current_user.var_file,
+                )
                 # upload_file.save(cur_abs_path + usr_report_path + "/" + report_name)
                 dataBase.session.add(new_report)
                 dataBase.session.commit()
-                return make_response(('Success', 200))
+                return make_response(("Success", 200))
 
             # Отчёт уже был проверен
             # if Report.query.filter_by(user_id=current_user.id).first().mark != None:
@@ -198,18 +224,20 @@ def upload_report():
             dataBase.session.commit()
 
             # Всё необходимое создано, возвращаемся на страницу пользователя
-            return make_response(('Success', 200))
+            return make_response(("Success", 200))
     reports_query = Report.query.filter_by(user_id=current_user.id)
     arReports = []
     for report in reports_query:
-        arReports.append({
-            'report_name': report.report_name,
-            'data_creation': str(report.date_creation).partition('.')[0],
-            'mark': report.mark,
-            'comment': report.comment,
-            'teacher_name': report.teacher_name
-        })
-    return render_template('reports.html', title='Мои отчеты', reports=arReports)
+        arReports.append(
+            {
+                "report_name": report.report_name,
+                "data_creation": str(report.date_creation).partition(".")[0],
+                "mark": report.mark,
+                "comment": report.comment,
+                "teacher_name": report.teacher_name,
+            }
+        )
+    return render_template("reports.html", title="Мои отчеты", reports=arReports)
 
 
 @bluePrint.route("/edit_profile", methods=["GET", "POST"])
