@@ -2,20 +2,18 @@ from app.admin import bluePrint
 from app.admin.forms import RegisterUsers, VarsCreation, VarsView
 from app.models import User, Group, Group_user, Report
 from app import dataBase
+
 from flask import (
-    render_template,
-    flash,
-    redirect,
     request,
-    url_for,
-    send_from_directory,
     Response,
+    render_template,
+    send_from_directory,
     stream_with_context,
 )
+
 from flask_login import current_user, login_required
 from shutil import copytree, rmtree
 from sqlalchemy import desc
-from flask import send_from_directory
 import random
 import string
 import sympy
@@ -29,6 +27,7 @@ def isAdmin():
     # current_user.username
     # users = Group_user.query.join(User, User.id == Group_user.userid).filter(Group_user.groupid == 2)
     # users = Group_user.query.select_from(User).join(Group_user, User.id == Group_user.userid).filter(User.username == current_user.username)
+    
     adminId = Group.query.filter(Group.groupname == "admin").first()
     user = (
         Group_user.query.select_from(User)
@@ -37,6 +36,7 @@ def isAdmin():
         .filter(Group_user.groupid == adminId.id)
         .first()
     )
+    
     if user is None:
         return False
     else:
@@ -143,11 +143,13 @@ def preview_vars(program, bounds):
 def generate_vars(program, bounds, usrs, var_name, output_dir="volume/vars"):
     all_vars = generate(program, bounds)
     var_num = 0
+
     for i, program in tqdm.tqdm(enumerate(all_vars)):
         with open(f"{output_dir}/program_{str(i)}.c", "w") as fd:
             fd.write(simplify(program))
-        yield i + 1
+
         var_num = i + 1
+        yield var_num
 
     if usrs is not None:
         print("given")
@@ -156,6 +158,7 @@ def generate_vars(program, bounds, usrs, var_name, output_dir="volume/vars"):
                 usr.var_num = i % var_num
                 usr.var_file = var_name + "/program_" + str(i % var_num) + ".c"
                 usr.var_name = var_name
+
         dataBase.session.commit()
 
 
@@ -164,6 +167,7 @@ def generate_vars(program, bounds, usrs, var_name, output_dir="volume/vars"):
 def download(filename):
     if (isAdmin() or isTeacher()) is False:
         return render_template("errors/500.html")
+    
     data = request.args.get("user")
     cur_abs_path = os.path.abspath(os.path.curdir)
     user_folder = User.query.filter_by(username=data).first().local_folder
@@ -177,6 +181,7 @@ def download(filename):
 def reports_edit():
     if isAdmin() is False:
         return render_template("errors/500.html")
+    
     if request.method == "POST":
         data = request.get_json()
         if data["method"] == "delete_reports":
@@ -194,28 +199,34 @@ def reports_edit():
                     Report.query.filter_by(
                         user_id=userId, report_name=report["report"]
                     ).delete(synchronize_session=False)
+                    
         if data["method"] == "edit_mark":
             userId = User.query.filter_by(username=data["user"]).first().id
             report = Report.query.filter_by(
                 user_id=userId, report_name=data["report"]
             ).first()
             report.mark = data["mark"]
+            
         if data["method"] == "edit_comment":
             userId = User.query.filter_by(username=data["user"]).first().id
             report = Report.query.filter_by(
                 user_id=userId, report_name=data["report"]
             ).first()
             report.comment = data["comment"]
+            
         if data["method"] == "edit_name":
             userId = User.query.filter_by(username=data["user"]).first().id
             report = Report.query.filter_by(
                 user_id=userId, report_name=data["report"]
             ).first()
             report.teacher_name = data["teacher_name"]
+            
         dataBase.session.commit()
         return json.dumps({"status": "OK"})
+    
     reports_query = Report.query.order_by(Report.date_creation)
     arReports = []
+    
     for report in reports_query:
         arReports.append(
             {
@@ -228,6 +239,7 @@ def reports_edit():
                 "teacher_name": report.teacher_name,
             }
         )
+        
     return render_template("admin/reports.html", title="Отчеты", reports=arReports)
 
 
@@ -236,6 +248,7 @@ def reports_edit():
 def groups_edit():
     if isAdmin() is False:
         return render_template("errors/500.html")
+    
     if request.method == "POST":
         data = request.get_json()
         if data["method"] == "add_group":
@@ -243,12 +256,14 @@ def groups_edit():
             if group is None:
                 new_group = Group(groupname=data["newGroup"])
                 dataBase.session.add(new_group)
+                
         elif data["method"] == "add_user":
             group = Group.query.filter_by(groupname=data["groupName"]).first()
             user = User.query.filter_by(username=data["newUser"]).first()
             if group is not None:
                 new_group_user = Group_user(groupid=group.id, userid=user.id)
                 dataBase.session.add(new_group_user)
+                
         elif data["method"] == "delete_users":
             group = Group.query.filter_by(groupname=data["groupName"]).first()
             for userName in data["usersDelete"]:
@@ -257,6 +272,7 @@ def groups_edit():
                     groupid=group.id, userid=user.id
                 ).delete(synchronize_session=False)
                 # user = User.query.filter_by(username=userName).delete(synchronize_session=False)
+                
         elif data["method"] == "delete_group":
             if data["groupName"] == "admin" or data["groupName"] == "teacher":
                 return render_template("errors/500.html")
@@ -267,8 +283,10 @@ def groups_edit():
             Group.query.filter_by(groupname=data["groupName"]).delete(
                 synchronize_session=False
             )
+            
         dataBase.session.commit()
         return json.dumps({"status": "OK"})
+    
     arResult = {}
 
     # все пользователи
@@ -288,6 +306,7 @@ def groups_edit():
             user = User.query.filter(User.id == groupUser.userid).first()
             newGroup["users"].append(user.username)
         arResult["groups"].append(newGroup)
+        
     return render_template(
         "admin/groups_edit.html",
         title="Управление группами пользователей",
@@ -302,6 +321,7 @@ def users():
 
     if isAdmin() is False:
         return render_template("errors/500.html")
+    
     if request.method == "POST":
         data = request.get_json()
 
@@ -334,6 +354,7 @@ def users():
 
         dataBase.session.commit()
         return json.dumps({"status": "OK"})
+    
     # выбираем пользователей по дате последней авторизации (по убыванию)
     arUsers = User.query.order_by(desc(User.last_seen))
     return render_template("admin/users.html", title="Пользователи", arUsers=arUsers)
@@ -344,6 +365,7 @@ def users():
 def download_var():
     if isAdmin() is False:
         return render_template("errors/500.html")
+    
     return send_from_directory(
         directory="/home/flask_skipod/volume",
         filename="User_list.txt",
@@ -357,6 +379,7 @@ def download_var():
 def admin_forward():
     # if current_user.username != 'ucmc2020ssRoot':
     #     return render_template('errors/500.html')
+    
     if isAdmin() is False:
         return render_template("errors/500.html")
 
@@ -377,6 +400,7 @@ def stream_template(template_name, **context):
 def generate_users(form):
     new_user_count = int(form.userNumber.data)
     mask = form.mask.data
+    
     # поиск номера несуществующего пользователя
     current_users_count = find_free_num(mask)  #
     old_i = 0  #
@@ -392,29 +416,15 @@ def generate_users(form):
             current_users_count = find_free_num(mask)
             usr_name = mask + format(current_users_count, "03d")
             old_i = i
+            
         txt_pass_count = 12
         txt_pass = "".join(
             random.choices(string.ascii_letters + string.digits, k=txt_pass_count)
         )
+        
         # It works correctly but further investigation on what's going on required.
         # добавление пользователя в бд
         if form.give_var.data:
-            # <<<<<<< new_core
-            #             new_user = User(
-            #                 username=usr_name,
-            #                 local_folder=usr_name,
-            #                 var_num=i % var_num,
-            #                 var_file=form.vars_names.data + "/program_" + str(i % var_num) + ".c",
-            #                 var_name=form.vars_names.data,
-            #             )
-            #         else:
-            #             new_user = User(
-            #                 username=usr_name,
-            #                 local_folder=usr_name,
-            #                 var_num=-1,
-            #                 var_file="not_a_task.txt",
-            #             )
-            # =======
             new_user = User(
                 username=usr_name,
                 local_folder=usr_name,
@@ -431,13 +441,14 @@ def generate_users(form):
                 var_file="not_a_task.txt",
                 task_file="test_task.xml",
             )
-        # >>>>>>> main
+            
         new_user.set_password(txt_pass)
         dataBase.session.add(new_user)
         # create folders for new users
         usr_folder = "volume/userdata/" + usr_name
         if not os.path.exists(usr_folder):
             copytree("new_user_folder", usr_folder)
+            
         dataBase.session.commit()
         yield {"login": usr_name, "password": txt_pass}
 
@@ -448,6 +459,7 @@ def generate_users(form):
 def admin():
     if isAdmin() is False:
         return render_template("errors/500.html")
+    
     form = RegisterUsers()
     dirlist = os.listdir("volume/vars")
     dirlist.remove("not_a_task.txt")
@@ -471,7 +483,7 @@ def admin():
                 )
             )
 
-        # --------------debug settings--------------
+        # # -------------- debug settings --------------
         # if form.log_download.data:
         #     return send_from_directory('/home/flask_skipod/logs', 'microbial.log')
         # if form.console_button.data:
@@ -488,6 +500,7 @@ def admin():
 def generate_vars_page():
     if isAdmin() is False:
         return render_template("errors/500.html")
+    
     var_form = VarsCreation()
 
     # Отправили заполненную форму
@@ -578,6 +591,7 @@ def generate_vars_page():
                 var_form.var_name.data,
                 "volume/vars/" + var_form.var_name.data,
             )
+            
             return Response(
                 stream_with_context(
                     stream_template(
@@ -588,14 +602,16 @@ def generate_vars_page():
                 )
             )
 
-        # --------------debug settings--------------
+        # # -------------- debug settings --------------
         # if var_form.log_download.data:
         #     return send_from_directory('/home/flask_skipod/logs', 'microbial.log')
         # if var_form.console_button.data:
         #     os.system(var_form.console.data + "> a.txt")
         #     return send_from_directory('/home/flask_skipod', 'a.txt')
+        
     with open("volume/vars.json") as f:
         params = json.load(f)
+        
     # обновляем форму
     var_form = VarsCreation(
         program=params["program"],
@@ -633,6 +649,7 @@ def regenerate_var(var_name):
         ("p5", [int(s) for s in params["p5"].rstrip().lstrip().split()]),
         ("p6", [int(s) for s in params["p6"].rstrip().lstrip().split()]),
     ]
+    
     # generate_vars(params['program'], bounds, output_dir='volume/vars/' + var_name)
 
     try:
@@ -654,6 +671,7 @@ def regenerate_var(var_name):
     var_num = generate_vars(
         params["program"], bounds, usrs, var_name, output_dir="volume/vars/" + var_name
     )
+    
     return Response(
         stream_with_context(
             stream_template(
@@ -683,6 +701,7 @@ def var_view():
             with open("volume/vars_all_data.json", "r") as f:
                 vars_data = json.load(f)
             vars_data.pop(form.vars_names.data)
+            
             with open("volume/vars_all_data.json", "w") as f:
                 json.dump(vars_data, f)
 

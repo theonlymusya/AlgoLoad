@@ -336,28 +336,34 @@ def upload_task():
 def receive_task():
     # Просмотр результирующей картинки.
     cur_abs_path = os.path.abspath(os.path.curdir)
-    usr_tsk_path = "/volume/userdata/" + current_user.local_folder + "/task"
+    user_task_path = f"{cur_abs_path}/volume/userdata/{current_user.local_folder}/task"
 
     # Настройка формы
     form = TaskReceiveForm()
-    if os.path.exists(cur_abs_path + usr_tsk_path):
+    if os.path.exists(user_task_path):
         # Закинем комментарии юзера в его же форму
-        fd = os.open(cur_abs_path + usr_tsk_path + "/Task_code.txt", os.O_RDONLY)
-        bytes_data = os.read(fd, 16384)
-        form.task_code.data = bytes_data.decode("utf-8")
+        try:
+            fd = os.open(user_task_path + "/Task_code.txt", os.O_RDONLY)
+            bytes_data = os.read(fd, 16384)
+            form.task_code.data = bytes_data.decode("utf-8")  
+            # <-- тут вылетает ошибка при декодировании (редко)
+            # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb5 in position 83: invalid start byte
+
+            # with open(user_task_path + "/Task_code.txt", "rb") as f:
+            #     form.task_code.data = f.read()
+        except:
+            form.task_code.data = "Ошибка получения описания задачи."
 
         # Получаем xml-код пользователя (или оставляем пустым если был загружен .json)
         try:
-            fd = os.open(
-                cur_abs_path + usr_tsk_path + "/" + current_user.task_file, os.O_RDONLY
-            )
+            fd = os.open(user_task_path + "/" + current_user.task_file, os.O_RDONLY)
             bytes_data = os.read(fd, 16384)
             xml_code = bytes_data.decode("utf-8")
         except:
-            xml_code = ""
+            xml_code = "Ошибка получения XML кода задачи."
 
     # Настройка пути к визуализационной странице и рендер всего ресурса
-    # frame_address = "/user/" + current_user.username + "/get_data" # не работает ваще
+    # frame_address = "/user/" + current_user.username + "/get_data" # не работает
     frame_address = "/user/" + current_user.username + "/AlgoViewPage.html"
 
     return render_template(

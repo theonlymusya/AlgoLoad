@@ -1,6 +1,12 @@
 *_ignore*
 *_old*
 
+architect/errors
+architect/extra_files
+architect/rapidxml-1.13
+architect/output.json
+architect/main
+
 # logs
 *.log.*
 
@@ -19,6 +25,7 @@
 *.slo
 *.lo
 *.o
+*.o.tmp
 *.obj
 
 # Precompiled Headers

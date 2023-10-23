@@ -76,6 +76,7 @@ def create_app(config_class=Config):
 
     # Настройка журналирования ошибок в файлы
     # if not app_flask.debug:
+    
     if not os.path.exists("logs"):
         os.mkdir("logs")
 
@@ -83,22 +84,21 @@ def create_app(config_class=Config):
     file_handler = RotatingFileHandler(
         "logs/microbial.log",
         maxBytes=500000,
-        backupCount=10,
+        backupCount=20,
     )
 
     file_handler.setFormatter(
         logging.Formatter(
-            "%(asctime)s %(levelname)s:" " %(message)s [int %(pathname)s:%(lineno)d]"
+            "[%(asctime)s  ] [Flask] [%(levelname)s] "
+            "%(message)s [int %(pathname)s:%(lineno)d]"
         )
     )
 
     file_handler.setLevel(logging.INFO)
+
     # Настраиваем приложение на его использование
     app_flask.logger.addHandler(file_handler)
     app_flask.logger.setLevel(logging.INFO)
     app_flask.logger.info("Microbial startup")
 
     return app_flask
-
-
-from app import models
