@@ -1,0 +1,144 @@
+\documentclass[oneside,senior,etd]{BYUPhysForDegree}
+
+\usepackage[T1,T2A]{fontenc} % gleb
+
+\usepackage[utf8]{inputenc}
+\usepackage{rotating} 
+
+%json
+\usepackage{minted}
+
+\usepackage[russian]{babel}
+\usepackage{amsfonts} % Пакеты для математических символов и теорем
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx} % Пакеты для вставки графики
+\usepackage{subfig}
+\usepackage{color}
+\usepackage[unicode]{hyperref}
+\usepackage[nottoc]{tocbibind} % Для того, чтобы список литературы отображался в оглавлении
+\usepackage{algorithmic} % Для записи алгоритмов в псевдокоде
+\usepackage{algorithm}
+\usepackage{verbatim} % Для вставок заранее подготовленного текста в режиме as-is
+\usepackage{listings}
+
+% =================================================
+% https://www.overleaf.com/learn/latex/Code_listing
+% =================================================
+
+\usepackage{xcolor} 
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour}, commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  % numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  % numbers=left,                    
+  % numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+% =================================================
+% =================================================
+
+
+
+
+
+
+
+\usepackage{commath}
+\newcommand\Tau{\mathcal{T}}
+\newcommand{\R}{\mathbb{R}}
+\usepackage{color}
+\usepackage[colorinlistoftodos, prependcaption]{todonotes}
+\usepackage{multirow}
+\newcommand*{\MyIndent}{\hspace*{0.2cm}}%
+
+\Chair{Кафедра суперкомпьютеров и квантовой информатики}
+\Lab{~}
+\Year{2023}
+  \Month{Август}
+  \City{Москва}
+  \AuthorText{Автор}
+  \Author{Скрябин Глеб Денисович}
+  \AuthorEng{Gleb Skryabin}
+  \AcadGroup{423}
+  \TitleTop{Разработка технологий 3D визуализации}
+  %\TitleMiddle{}
+  \TitleBottom{информационных графов алгоритмов} % leave empty if you don't need it
+  \TitleTopEng{Development of technologies for 3D visualization }
+  \TitleBottomEng{of information graphs of algorithms} % leave empty if you don't need it  
+  
+  %\docname{Курсовая работа}
+  \docname{Выпускная квалификационная работа}
+  %\docname{Магистерская диссертация}
+
+  % Антонов Александр Сергеевич, к.ф.-м.н., вед.н.с.
+  % Лаборатория Параллельных информационных технологий НИВЦ МГУ
+  \Advisor{Антонов Александр Сергеевич}  
+  \AdvisorDegree{к.ф.-м.н., вед.н.с.}
+  \Consultant{}
+  \ConsultantDegree{}
+  
+\Abstract{В данной выпускной квалификационной работе описывается исследование и разработка автоматизированной системы визуализации графов алгоритмов. Целью работы было изучение современных методов 3D-визуализации и создание системы, позволяющей создавать интерактивную 3D-модель графа алгоритма и предоставляющей возможности для его анализа. Система AlgoView была успешно разработана и обеспечивает визуальное представление внутренней структуры алгоритма, облегчая процесс детального анализа. Система полезна для образовательных и исследовательских целей, так как устраняет необходимость ручной визуализации и позволяет исследователям сосредоточиться на анализе алгоритма. В работе приводится подробное описание работы приложения и многоэтапного автоматизированного процесса обработки данных от входного файла до интерактивной веб визуализации графа алгоритма.}
+
+\AbstractEng{This final qualification work describes the research and development of an automated visualization system for graphs of algorithms. The aim of the work was to study modern methods of 3D visualization and create a system that allows you to create an interactive 3D model of the algorithm graph and provides opportunities for its analysis. The AlgoView system has been successfully developed and provides a visual representation of the internal structure of the algorithm, facilitating the process of detailed analysis. The system is useful for educational and research purposes as it eliminates the need for manual visualization and allows researchers to focus on algorithm analysis. The paper provides a detailed description of the application and a multi-stage automated data processing process from the input file to interactive web visualization of the algorithm graph.}
+
+
+%%%% DON'T change this. It is here because .sty does not support cyrillic cp properly %%%%
+\University{Московский государственный университет имени М.В. Ломоносова}
+\Faculty{Факультет вычислительной математики и кибернетики}
+\GrText{гр.}
+\AdvisorText{Научный руководитель}
+% \ConsultantText{Научный консультант}
+\AbstractText{Аннотация}
+
+\setlength {\marginparwidth }{2cm} % gleb
+
+% глубина в оглавлении. n=2 - до section
+% http://mydebianblog.blogspot.com/2011/05/latex.html
+\setcounter{tocdepth}{2}  % gleb
+
+\begin{document}
+\fixmargins
+\makepreliminarypages
+
+\oneandhalfspace
+
+
+\tableofcontents
+
+\include{Chapter0} % Введение
+\include{Chapter1} % Постановка задачи
+\include{Chapter2} % Обзор существующих решений
+\include{Chapter3} % Исследование и построение решения задачи
+\include{Chapter4} % Описание Экспериментальной части
+\include{Chapter5} % Заключение
+
+\nocite{*}
+\bibliographystyle{gost71u} % Для соответствия требованиям об оформлении списка литературы
+\bibliography{references}
+
+% \include{Appendix} 
+
+\end{document}
