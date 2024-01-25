@@ -1,0 +1,107 @@
+%%%%%%%%%%%%%%%%%%%% author.tex %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% sample root file for your "contribution" to a proceedings volume
+%
+% Use this file as a template for your own input.
+%
+%%%%%%%%%%%%%%%% Springer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass{svproc}
+\usepackage{marvosym}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Для русского яыка. потом надо убрать
+% % \usepackage[unicode]{hyperref}
+% % \usepackage[utf8x]{inputenc}
+% \usepackage[T1,T2A]{fontenc}
+% \usepackage[utf8]{inputenc}
+% \usepackage[english,russian]{babel}
+% \DeclareUnicodeCharacter{0306}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Columns: https://www.overleaf.com/learn/latex/Multiple_columns
+% \usepackage{blindtext}
+% \usepackage{multicol}
+% \setlength{\columnsep}{1cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+% RECOMMENDED
+\usepackage{graphicx}
+
+% to typeset URLs, URIs, and DOIs
+\usepackage{url}
+\usepackage{hyperref}
+\def\UrlFont{\rmfamily}
+\providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}
+
+\def\orcidID#1{\unskip$^{[#1]}$}
+\def\letter{$^{\textrm{(\Letter)}}$}
+
+
+
+
+
+
+
+
+
+
+\begin{document}
+\mainmatter % start of a contribution
+
+\title{A New Version of the AlgoView System for 3D Visualization and Interactive Analysis of Information Graphs of Algorithms}
+
+\titlerunning{A New Version of the AlgoView}  % abbreviated title (for running head)
+                                              % also used for the TOC unless
+                                              % \toctitle is used
+
+% \orcidID{0000-1111-2222-3333}
+\author{Gleb Skryabin\inst{1, 2}\letter \and Tamara Gadieva\inst{1, 2} \and Alexander Antonov\inst{2}}
+
+\authorrunning{G. Skryabin, T. Gadieva, A. Antonov} % abbreviated author list (for running head)
+
+%%%% list of authors for the TOC (use if author list has to be modified)
+\tocauthor{Gleb Skryabin and Tamara Gadieva, and Alexander Antonov}
+
+\institute{Lomonosov Moscow State University \and
+Research Computing Center, Lomonosov Moscow State University \\
+Moscow, Russia \\
+\email{g.skryabin@yahoo.com, tamara.gadievaa@mail.ru, asa@guru.ru}
+}
+
+
+
+
+
+
+
+
+\maketitle % typeset the title of the contribution
+
+\input{Abstract} % Аннотация и ключевые слова
+
+% \input{Chapter_ex}
+% \input{Chapter_tmp}
+
+\input{Chapter1} % Введение
+\input{Chapter2} % Постановка задачи
+\input{Chapter3} % Обзор существующих решений
+\input{Chapter4} % Исследование и построение решения задачи
+\input{Chapter5} % Описание Экспериментальной части
+\input{Chapter6} % Заключение
+
+\input{References} % Литература
+
+\end{document}
