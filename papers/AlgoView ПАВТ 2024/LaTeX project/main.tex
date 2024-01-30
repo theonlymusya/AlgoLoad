@@ -4,14 +4,14 @@
 %
 % Use this file as a template for your own input.
 %
-%%%%%%%%%%%%%%%% Springer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%%%%%%%%%%%%%%%%%%%% Springer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass{svproc}
 \usepackage{marvosym}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Для русского яыка. потом надо убрать
+
+% Для русского яыка, если надо
 % % \usepackage[unicode]{hyperref}
 % % \usepackage[utf8x]{inputenc}
 % \usepackage[T1,T2A]{fontenc}
@@ -20,22 +20,13 @@
 % \DeclareUnicodeCharacter{0306}{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Columns: https://www.overleaf.com/learn/latex/Multiple_columns
 % \usepackage{blindtext}
 % \usepackage{multicol}
 % \setlength{\columnsep}{1cm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-
 
 % RECOMMENDED
 \usepackage{graphicx}
@@ -49,14 +40,7 @@
 \def\orcidID#1{\unskip$^{[#1]}$}
 \def\letter{$^{\textrm{(\Letter)}}$}
 
-
-
-
-
-
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 \mainmatter % start of a contribution
@@ -90,18 +74,13 @@ Moscow, Russia \\
 
 \maketitle % typeset the title of the contribution
 
-\input{Abstract} % Аннотация и ключевые слова
-
-% \input{Chapter_ex}
-% \input{Chapter_tmp}
-
-\input{Chapter1} % Введение
-\input{Chapter2} % Постановка задачи
-\input{Chapter3} % Обзор существующих решений
-\input{Chapter4} % Исследование и построение решения задачи
-\input{Chapter5} % Описание Экспериментальной части
-\input{Chapter6} % Заключение
-
+\input{Abstract}   % Аннотация и ключевые слова
+\input{Chapter1}   % Введение
+\input{Chapter2}   % Постановка задачи
+\input{Chapter3}   % Исследование и построение решения
+\input{Chapter4}   % Построение архитектуры и программная реализация
+\input{Chapter5}   % Разбор работы системы на примере
+\input{Chapter6}   % Заключение
 \input{References} % Литература
 
 \end{document}

@@ -41,12 +41,6 @@ First, let's make a few disclaimers. In the process of describing the operation 
 
 One of the main tasks when implementing a system in software is the selection and development of a suitable application architecture. The chosen architecture determines the way data is processed and communicates with the user. Choosing an inappropriate structure and methods for communicating application modules with each other can significantly increase the load on the browser kernel and the operating system's computing resources. Let's consider the main modules of the visualization system to solve this problem:
 
-% 1. Working with data, reading and creating the internal structure of the graph.
-% 2. Working with the graph structure based on the view parameters specified by the user. Creation of 3D models for each object in the graph structure.
-% 3. Creation of a 3D scene containing a graph model.
-% 4. Working with the user: ensuring communication of the control panel with the graph model, scene and parameters and view.
-% 5. When changing view parameters, the data in the model must change locally and consistently update the structure of the graph and the 3D model representing this graph on the stage.
-
 \begin{enumerate}
     \item Working with data, reading and creating the internal structure of the graph.
     \item Working with the graph structure based on the view parameters specified by the user. Creation of 3D models for each object in the graph structure.
