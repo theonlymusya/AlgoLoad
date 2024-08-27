@@ -1,22 +1,36 @@
+#algoview_iframe {
+    /* width: 100%; */
+    height: 75vh;
+}
+
+/* #upload_new_task_button  */
+
+#submit {
+    margin-top: 8px;
+    margin-bottom: 22px;
+}
+
 #xml_code {
     /*border: 1px solid;*/
     border-width: 2px;
     border-style: inset;
     border-color: initial;
     border-image: initial;
-    background: #000;
-    color: #4cc73d;
+    background: #dedede;
+    color: #1a1a1a;
     padding: 20px;
-    width: 1200px;
+    /* width: 1200px; */
+    /* width: 100%; */
     display: none;
 }
 
 #xml_code .teg {
-    color: #e9c619;
+    color: #c90000;
+    font-weight: bold;
 }
 
 #xml_code .string_index {
-    color: #687067;
+    color: #7f7f7f;
 }
 
 #xml_code-button {

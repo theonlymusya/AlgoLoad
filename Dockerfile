@@ -11,7 +11,7 @@ WORKDIR /home/flask_skipod
 
 #WORKDIR /home/new_user/Desktop/Flask_ss/
 #!requirements.txt
-#WORKDIR /home/new_user/Desktop/Flask_ss/venv/bin
+#WORKDIR /home/new_user/Desktop/Flask_ss/.venv/bin
 #!RUN pip install gunicorn
 
 # SHELL [ "/bin/bash", "-l", "-c" ]
@@ -49,10 +49,10 @@ RUN (cd ./architect && make)
 # RUN mv ./architect/main ./scripts
 
 # установка нужных библиотек 
-RUN python3 -m venv venv
-RUN venv/bin/pip install --upgrade pip
-RUN venv/bin/pip install -r requirements.txt
-RUN venv/bin/pip install gunicorn
+RUN python3 -m venv .venv
+RUN .venv/bin/pip install --upgrade pip
+RUN .venv/bin/pip install -r requirements.txt
+# RUN .venv/bin/pip install gunicorn
 
 #!RUN venv/bin/pip install --upgrade pip
 #!RUN venv/bin/pip install -r requirements.txt

@@ -1,8 +1,8 @@
 #!/bin/bash
 # this script is used to boot a Docker container
-source venv/bin/activate
+source .venv/bin/activate
 
-# source /home/new_user/Desktop/Flask_ss/venv/bin/activate
+# old: source /home/new_user/Desktop/Flask_ss/.venv/bin/activate
 # flask db migrate
 
 while true; do

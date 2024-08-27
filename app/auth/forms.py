@@ -1,7 +1,9 @@
 # flask_wtf - имя расширения flask-wtf для flask в команде импорта
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms.validators import DataRequired
+
+from wtforms.validators import ValidationError, Email, EqualTo
 
 
 class LoginForm(FlaskForm):

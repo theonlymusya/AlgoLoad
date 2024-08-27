@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
+import os
+from datetime import datetime
+from os import path
+
 from flask import (
-    send_from_directory,
-    render_template,
-    flash,
-    redirect,
-    url_for,
-    request,
     current_app,
+    flash,
     make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
 )
 from flask_login import current_user, login_required
-from datetime import datetime
+
 from app import dataBase
 from app.main import bluePrint
-from app.main.forms import EditProfileForm
-from app.main.forms import TaskSubmitForm
-from app.main.forms import ReportSubmitForm
-from app.main.forms import TaskReceiveForm
-from app.models import User, Report
-import os
-from flask import send_from_directory
-from os import path
+from app.main.forms import (
+    EditProfileForm,
+    ReportSubmitForm,
+    TaskReceiveForm,
+    TaskSubmitForm,
+)
+from app.models import Report, User
 
 
 @bluePrint.route("/")
@@ -324,6 +327,7 @@ def upload_task():
 
         # Всё необходимое создано, возвращаемся на страницу пользователя
         user = User.query.filter_by(username=current_user.username).first_or_404()
+
         return render_template(
             "user.html", title="Моя страница", user=user, graph_name=graph_name
         )
@@ -334,6 +338,8 @@ def upload_task():
 @bluePrint.route("/receive_task", methods=["GET"])
 @login_required
 def receive_task():
+    # print(">>> in /receive_task")
+
     # Просмотр результирующей картинки.
     cur_abs_path = os.path.abspath(os.path.curdir)
     user_task_path = f"{cur_abs_path}/volume/userdata/{current_user.local_folder}/task"
@@ -345,7 +351,7 @@ def receive_task():
         try:
             fd = os.open(user_task_path + "/Task_code.txt", os.O_RDONLY)
             bytes_data = os.read(fd, 16384)
-            form.task_code.data = bytes_data.decode("utf-8")  
+            form.task_code.data = bytes_data.decode("utf-8")
             # <-- тут вылетает ошибка при декодировании (редко)
             # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb5 in position 83: invalid start byte
 
@@ -363,13 +369,21 @@ def receive_task():
             xml_code = "Ошибка получения XML кода задачи."
 
     # Настройка пути к визуализационной странице и рендер всего ресурса
-    # frame_address = "/user/" + current_user.username + "/get_data" # не работает
-    frame_address = "/user/" + current_user.username + "/AlgoViewPage.html"
+    # algoview_source = "/user/" + current_user.username + "/get_data" # больше не работает
+
+    # old: http://localhost:3001/user/q000/AlgoViewPage.html
+    # algoview_source = "/user/" + current_user.username + "/AlgoViewPage.html"
+
+    # static: http://localhost:3001/static/AlgoViewPage.html
+    algoview_source = "/static/AlgoViewPage.html"
+
+    json_data_source = "/user/" + current_user.username + "/Json_models/graphData.json"
 
     return render_template(
         "result_task.html",
         title="Результат",
         form=form,
-        source=frame_address,
+        algoview_source=algoview_source,
+        json_data_source=json_data_source,
         xml_code=xml_code,
     )

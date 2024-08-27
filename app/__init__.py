@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import logging
 from logging.handlers import SMTPHandler
@@ -8,8 +9,10 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
+from flask_cors import CORS
 
-# Объявление всего.
+
+# Объявление всего
 dataBase = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
@@ -18,16 +21,7 @@ login.login_message = "Sign in or register to access"
 bootstrap = Bootstrap()
 
 
-def create_app(config_class=Config):
-    # Само приложение
-    app_flask = Flask(__name__)
-    app_flask.config.from_object(config_class)
-
-    dataBase.init_app(app_flask)
-    migrate.init_app(app_flask, dataBase)
-    login.init_app(app_flask)
-    bootstrap.init_app(app_flask)
-
+def _register_blueprint(app_flask):
     from app.errors import bluePrint as errors_BP
 
     app_flask.register_blueprint(errors_BP)
@@ -47,6 +41,37 @@ def create_app(config_class=Config):
     from app.teacher import bluePrint as teacher_BP
 
     app_flask.register_blueprint(teacher_BP)
+
+    from app.test import bluePrint as test_BP
+
+    app_flask.register_blueprint(test_BP)
+
+
+def create_app(config_class=Config()):
+    # Само приложение
+    app_flask = Flask(__name__)
+    app_flask.config.from_object(config_class)
+    # app_flask.debug = True
+
+    # максимальный возраст кэшируемых файлов, находящихся в /static
+    # https://stackoverflow.com/questions/41144565/flask-does-not-see-change-in-js-file
+    # https://stackoverflow.com/questions/34066804/disabling-caching-in-flask/54422901#54422901
+
+    # app_flask.config["SEND_FILE_MAX_AGE_DEFAULT"] = timedelta(seconds=1)
+    app_flask.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+    app_flask.config["TEMPLATES_AUTO_RELOAD"] = True
+
+    # enable CORS
+    # https://stackoverflow.com/questions/65630743/how-to-solve-flutter-web-api-cors-error-only-with-dart-code/66879350#66879350
+    # https://enable-cors.org/server_flask.html
+    cors = CORS(app_flask)
+
+    dataBase.init_app(app_flask)
+    migrate.init_app(app_flask, dataBase)
+    login.init_app(app_flask)
+    bootstrap.init_app(app_flask)
+
+    _register_blueprint(app_flask)
 
     # Настройка регистратора электронной почты
     if not app_flask.debug:
@@ -76,7 +101,7 @@ def create_app(config_class=Config):
 
     # Настройка журналирования ошибок в файлы
     # if not app_flask.debug:
-    
+
     if not os.path.exists("logs"):
         os.mkdir("logs")
 

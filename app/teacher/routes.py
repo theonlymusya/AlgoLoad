@@ -1,11 +1,14 @@
 from app.teacher import bluePrint
-from app.models import User, Group, Group_user, Report
+from app.models import User, Report
 from app import dataBase
 from flask import render_template, request
-from flask_login import current_user, login_required
+from flask_login import login_required
 from app.admin.routes import isAdmin, isTeacher
 import json
 import os
+
+from app.models import Group, Group_user
+from flask_login import current_user
 
 
 @bluePrint.route("/teacher", methods=["GET", "POST"])

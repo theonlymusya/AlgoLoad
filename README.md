@@ -13,3 +13,7 @@ make              # all subsequent builds
 docker build -t container_name .
 docker run -p 3001:3001 -v $(pwd)/volume:/home/flask_skipod/volume container_name:latest
 ```
+
+<http://localhost:3001/>
+
+k000 CcXK9ha00rcw
