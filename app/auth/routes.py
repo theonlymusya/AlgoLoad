@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from flask import render_template, flash, redirect, url_for, request
-from werkzeug.urls import url_parse
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
-from app.auth import bluePrint
-from app.auth.forms import LoginForm
-from app.models import User
+from werkzeug.urls import url_parse
 
 from app import dataBase
+from app.auth import bluePrint
+from app.auth.forms import LoginForm
+from app.models import User, debug_print
 
 # from app.auth.forms import RegisterForm
 
@@ -57,7 +57,7 @@ def logout_usr():
 #             next_page = request.args.get('next')
 #             dataBase.session.commit()
 #             new_usrs = User.query.all()
-#             print(new_usrs)
+#             debug_print(new_usrs)
 #             if not next_page or url_parse(next_page).netloc != '':
 #                 return redirect(url_for('auth.login_usr'))
 #             return redirect(next_page)

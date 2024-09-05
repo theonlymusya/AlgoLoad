@@ -1,8 +1,9 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
 from datetime import datetime
-from app import dataBase
-from app import login
+
+from flask_login import UserMixin
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from app import dataBase, login
 
 
 class Report(UserMixin, dataBase.Model):
@@ -62,3 +63,23 @@ class User(UserMixin, dataBase.Model):
 @login.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+def debug_print(*values: object):
+    # flask_app.logger.info("...")
+
+    try:
+        print("PYTHON DEBUG MESSAGE: ")
+
+        for value in values:
+            print(value, end=" ")
+
+        print(f"\n{'=' * 50}\n\n")
+
+    except:
+        pass
+
+
+# убрали докер, путь поменялся.
+# надо обновлять для каждого сервера пока не заведем конфиг
+abs_volume_path = "/home/algoload/www/AlgoLoadProject/volume/"

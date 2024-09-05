@@ -3,27 +3,15 @@ import os
 from datetime import datetime
 from os import path
 
-from flask import (
-    current_app,
-    flash,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    send_from_directory,
-    url_for,
-)
+from flask import (current_app, flash, make_response, redirect,
+                   render_template, request, send_from_directory, url_for)
 from flask_login import current_user, login_required
 
 from app import dataBase
 from app.main import bluePrint
-from app.main.forms import (
-    EditProfileForm,
-    ReportSubmitForm,
-    TaskReceiveForm,
-    TaskSubmitForm,
-)
-from app.models import Report, User
+from app.main.forms import (EditProfileForm, ReportSubmitForm, TaskReceiveForm,
+                            TaskSubmitForm)
+from app.models import Report, User, abs_volume_path, debug_print
 
 
 @bluePrint.route("/")
@@ -66,7 +54,7 @@ def before_request():
 # Пути к ресурсным файлам юзверя
 @bluePrint.route("/user/<username>/<path:path>", methods=["GET"])
 def send_textures(username, path):
-    # print(f">>> [GET] path = {path}")
+    # debug_print(f">>> [GET] path = {path}")
 
     # Определяем, в какой папке лежат данные для нашего пользователя
     cur_user = User.query.filter_by(username=username).first_or_404()
@@ -77,7 +65,7 @@ def send_textures(username, path):
         + "/page"
     )
 
-    # print(f"cur_folder = {cur_folder}")
+    # debug_print(f"cur_folder = {cur_folder}")
 
     # return send_from_directory(
     #     directory="/home/flask_skipod/volume/vars",
@@ -96,7 +84,7 @@ def render_static(username):
     cur_dir = os.path.abspath(cur_dir)
     cur_dir = os.path.realpath(cur_dir)
     cur_folder = cur_dir + "/volume/userdata/" + cur_user.local_folder + "/page"
-    # print("=======> ", cur_folder + "/page.html")
+    # debug_print("=======> ", cur_folder + "/page.html")
     return send_from_directory(cur_folder, "/page.html")
 
 
@@ -114,8 +102,11 @@ def user_page(username):
 @login_required
 def download_var(username):
     user = User.query.filter_by(username=username).first_or_404()
+    vars_path = abs_volume_path + "vars"
+    
     return send_from_directory(
-        directory="/home/flask_skipod/volume/vars",
+        # directory="/home/flask_skipod/volume/vars", # для докера
+        directory=vars_path,  # без докера
         filename=user.var_file,
         as_attachment=True,
     )
@@ -162,7 +153,7 @@ def upload_report():
                 f.write(file.stream.read())
         except OSError:
             # log.exception will include the traceback so we can see what's wrong
-            print("Could not write to file")
+            debug_print("Could not write to file")
             return make_response(
                 ("Not sure why," " but we couldn't write the file to server", 500)
             )
@@ -172,7 +163,7 @@ def upload_report():
         if current_chunk + 1 == total_chunks:
             # This was the last chunk, the file should be complete and the size we expect
             if os.path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-                print(
+                debug_print(
                     f"File {file.filename} was completed, "
                     f"but has a size mismatch."
                     f"Was {os.path.getsize(save_path)} but we"
@@ -185,10 +176,10 @@ def upload_report():
                     )
                 )
             else:
-                print(f"File {file.filename} has been uploaded successfully")
+                debug_print(f"File {file.filename} has been uploaded successfully")
                 file_is_uploaded = True
         else:
-            print(
+            debug_print(
                 f"Chunk {current_chunk + 1} of {total_chunks} "
                 f"for file {file.filename} complete"
             )
@@ -311,14 +302,14 @@ def upload_task():
                 pass
 
             if graph_config_file.endswith(".json"):
-                print(f"*\n*\n*\n>>>>>>> Загрузили .json\n*")
+                debug_print(f"*\n*\n*\n>>>>>>> Загрузили .json\n*")
                 os.replace(graph_config_file, cpp_output_file_path)
             else:  # новый архитектор
                 # graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
                 graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
                 os_command_new_cpp = f"{graph_appgen_path_new_cpp} {graph_config_file} {cpp_output_file_path}"
 
-                print(f"*\n*\n*\n>>>>>>> OS run {os_command_new_cpp}\n*")
+                debug_print(f"*\n*\n*\n>>>>>>> OS run {os_command_new_cpp}\n*")
                 os.system(os_command_new_cpp)
 
             # сохранение таска в бд
@@ -338,7 +329,7 @@ def upload_task():
 @bluePrint.route("/receive_task", methods=["GET"])
 @login_required
 def receive_task():
-    # print(">>> in /receive_task")
+    # debug_print(">>> in /receive_task")
 
     # Просмотр результирующей картинки.
     cur_abs_path = os.path.abspath(os.path.curdir)

@@ -1,16 +1,16 @@
-from datetime import timedelta
-import os
 import logging
-from logging.handlers import SMTPHandler
-from logging.handlers import RotatingFileHandler
+import os
+from datetime import timedelta
+from logging.handlers import RotatingFileHandler, SMTPHandler
+
 from flask import Flask
-from config import Config
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_cors import CORS
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
+from config import Config
 
 # Объявление всего
 dataBase = SQLAlchemy()

@@ -1,15 +1,15 @@
-import string
 import random
-from app import create_app
-from app import dataBase
-from app.models import User
+import string
+
+from app import create_app, dataBase
+from app.models import User, debug_print
 
 appFlask = create_app()
 appFlask.app_context().push()
 
 # Check current database state
 old_usrs = User.query.all()
-print(old_usrs)
+debug_print(old_usrs)
 
 # Remove existing users from dataBase
 for usr in old_usrs:
@@ -38,4 +38,4 @@ for i in range(0, new_user_count):
 
 dataBase.session.commit()
 new_usrs = User.query.all()
-print(new_usrs)
+debug_print(new_usrs)
