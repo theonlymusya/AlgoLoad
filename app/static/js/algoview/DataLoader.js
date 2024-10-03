@@ -8,6 +8,12 @@ class DataLoader {
         this.graphData = DataLoader.emptyGraphDataTemplate;
     }
 
+    // getLocalGraphData() {
+    //     // jsonGraphData загружена в html страничке
+    //     this.graphData = JSON.parse(jsonGraphData);
+    //     return this.graphData;
+    // }
+
     async loadGraphData() {
         // const href = window.location.href; // http://localhost:3001/user/q000/AlgoViewPage.html
         // const mainPath = href.slice(0, href.lastIndexOf("/")); // http://localhost:3001/user/q000

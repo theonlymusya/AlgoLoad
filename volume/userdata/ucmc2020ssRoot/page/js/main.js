@@ -1310,15 +1310,15 @@ class InfoBlockController {
             content = text; //"<h4>" + text + "</h4>";
         }
 
-        document.getElementById("textInfoBlock_0").innerHTML = content;
+        document.getElementById("graphInfoBlock").innerHTML = content;
     }
 
     static changeFPSInfoBlock(text1, text2) {
         const content1 = "<h4>" + text1 + "</h4>";
         const content2 = "<h4>" + text2 + "</h4>";
 
-        document.getElementById("textInfoBlock_1").innerHTML = content1;
-        document.getElementById("textInfoBlock_2").innerHTML = content2;
+        document.getElementById("fpsInfoBlock_1").innerHTML = content1;
+        document.getElementById("fpsInfoBlock_2").innerHTML = content2;
     }
 }
 

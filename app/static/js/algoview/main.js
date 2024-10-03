@@ -59,7 +59,7 @@ class AlgoViewConfiguration {
     constructor() {
         this.params = new Params();
         this.configuringThreeJS();
-        this.setupEventListeners();
+        this.initEventListeners();
     }
 
     /**
@@ -73,12 +73,15 @@ class AlgoViewConfiguration {
     }
 
     configuringThreeJS() {
-        this.container = document.getElementById("algoview_container");
+        this.container = document.getElementById("algoviewContainer");
         this.scene = new THREE.Scene();
 
         this.camera = this.createCamera();
         this.camera.position.set(90, 30, 90);
         this.frustumSize = 1000;
+
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector3();
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -87,6 +90,9 @@ class AlgoViewConfiguration {
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        // renderer.shadowMap.type = THREE.PCFShadowMap;
+        // renderer.shadowMap.enabled = true;
+
         this.container.appendChild(this.renderer.domElement);
 
         this.controls = new THREE.OrbitControls(
@@ -100,11 +106,17 @@ class AlgoViewConfiguration {
             window.innerHeight
         );
 
-        this.graph = new THREE.Object3D();
-        this.scene.add(this.graph);
+        this.allObjects = [];
+        this.graphObjectContainer = new THREE.Object3D();
+        this.scene.add(this.graphObjectContainer);
 
         this.graphRotationY = 0;
         this.updateGraphRotationY();
+    }
+
+    addObjectToContainer(mesh) {
+        this.graphObjectContainer.add(mesh);
+        this.allObjects.push(mesh); // для выделения объектов мышкой
     }
 
     createCamera() {
@@ -182,7 +194,7 @@ class AlgoViewConfiguration {
     }
 
     updateGraphRotationY() {
-        this.graph.rotation.y = this.graphRotationY;
+        this.graphObjectContainer.rotation.y = this.graphRotationY;
     }
 
     rotateGraphByClock() {
@@ -405,15 +417,18 @@ class AlgoViewConfiguration {
         this.resolution.set(w, h);
     }
 
-    setupEventListeners() {
+    initEventListeners() {
         // window.addEventListener("load", this.setupGUI());
         // window.addEventListener("resize", this.onWindowResize());
+        // window.addEventListener("resize", onWindowResize, false);
     }
 
     clearScene() {
-        this.scene.remove(this.graph);
-        this.graph = new THREE.Object3D();
-        this.scene.add(this.graph);
+        this.scene.remove(this.graphObjectContainer);
+
+        this.allObjects = [];
+        this.graphObjectContainer = new THREE.Object3D();
+        this.scene.add(this.graphObjectContainer);
 
         this.updateGraphRotationY();
     }
@@ -474,10 +489,10 @@ class Graph {
     edges = new Map();
 
     /** Сдвиг от осей */
-    #axisShift = 8;
+    static axisShift = 8;
 
     /** Масштаб */
-    #scale = 10;
+    static scale = 10;
 
     constructor(graphData) {
         this.graphData = graphData;
@@ -492,13 +507,18 @@ class Graph {
     /**
      * Преобразование координат
      * @param {Number} value
+     * @param {boolean} isVertexExcepted = true, если вершина является ошибкой в вычислениях
      * @returns преобразованное значение
      */
-    coordinateTransform(value, isVertexShifted = false) {
+    static coordinateTransform(value, isVertexExcepted = false) {
         return (
-            this.#axisShift +
-            (isVertexShifted ? value + 0.5 : value) * this.#scale
+            Graph.axisShift +
+            (isVertexExcepted ? value + 0.5 : value) * Graph.scale
         );
+    }
+
+    static coordinateReversedTransform(value) {
+        return (value - Graph.axisShift) / Graph.scale;
     }
 
     createVertices() {
@@ -511,21 +531,21 @@ class Graph {
             //     element.coordinates[2]
             // );
 
-            const isVertexShifted = element.info == "extra";
+            const isVertexExcepted = element.info == "extra";
 
             const vertex = new Vertex(
                 element.id,
-                this.coordinateTransform(
+                Graph.coordinateTransform(
                     element.coordinates[0],
-                    isVertexShifted
+                    isVertexExcepted
                 ),
-                this.coordinateTransform(
+                Graph.coordinateTransform(
                     element.coordinates[1],
-                    isVertexShifted
+                    isVertexExcepted
                 ),
-                this.coordinateTransform(
+                Graph.coordinateTransform(
                     element.coordinates[2],
-                    isVertexShifted
+                    isVertexExcepted
                 ),
                 element.type, // type: "0" / "1" / ...
                 element.info, // info: "normal" / "extra"
@@ -556,9 +576,9 @@ class Graph {
                 );
 
                 vertex.pos.set(
-                    vertex.pos.x + 0.5 * context.#scale,
-                    vertex.pos.y + 0.5 * context.#scale,
-                    vertex.pos.z + 0.5 * context.#scale
+                    vertex.pos.x + 0.5 * context.scale,
+                    vertex.pos.y + 0.5 * context.scale,
+                    vertex.pos.z + 0.5 * context.scale
                 );
             }
         });
@@ -807,7 +827,7 @@ class GraphicObjects {
         });
 
         const mesh = new THREE.Mesh(meshLine.geometry, material);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** супер простая линия если понадобится */
@@ -819,7 +839,7 @@ class GraphicObjects {
         const material = new THREE.LineBasicMaterial({ color: 0x000000 });
         const line = new THREE.Line(geometry, material);
 
-        config.graph.add(line);
+        return line;
     }
 
     static #createStraightMeshLine(
@@ -832,7 +852,12 @@ class GraphicObjects {
         lineGeometry.vertices.push(sourceVector3);
         lineGeometry.vertices.push(targetVector3);
 
-        this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
+        const mesh = this.#createMeshLineByGeo(
+            lineGeometry,
+            lineWidth,
+            colorIndex
+        );
+        config.addObjectToContainer(mesh);
     }
 
     static #createStraightDottedMeshLine(
@@ -876,7 +901,12 @@ class GraphicObjects {
             lineGeometry[5] = zs[i + 1];
 
             // 1 штрих
-            this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
+            const mesh = this.#createMeshLineByGeo(
+                lineGeometry,
+                lineWidth,
+                colorIndex
+            );
+            config.addObjectToContainer(mesh);
         }
     }
 
@@ -926,7 +956,12 @@ class GraphicObjects {
         }
 
         // конус
-        this.#createCone(croppedTargetVector3, targetVector3, colorIndex);
+        const coneMesh = this.#createCone(
+            croppedTargetVector3,
+            targetVector3,
+            colorIndex
+        );
+        config.addObjectToContainer(coneMesh);
     }
 
     /** https://www.notion.so/2ad0489562bc43b8a76345d4feda84ba */
@@ -1067,7 +1102,12 @@ class GraphicObjects {
         }
 
         // линия
-        this.#createMeshLineByGeo(lineGeometry, lineWidth, colorIndex);
+        const mesh = this.#createMeshLineByGeo(
+            lineGeometry,
+            lineWidth,
+            colorIndex
+        );
+        config.addObjectToContainer(mesh);
 
         const coneLocation = new THREE.Vector3(
             lineGeometry[0],
@@ -1076,7 +1116,12 @@ class GraphicObjects {
         );
 
         // конус
-        this.#createCone(coneLocation, targetVector3, colorIndex);
+        const coneMesh = this.#createCone(
+            coneLocation,
+            targetVector3,
+            colorIndex
+        );
+        config.addObjectToContainer(coneMesh);
     }
 
     /** Создает конус по заданным координатам и направдлению вершины конуса */
@@ -1093,7 +1138,7 @@ class GraphicObjects {
         );
 
         cone.lookAt(targetVector3.x, targetVector3.y, targetVector3.z);
-        config.graph.add(cone);
+        return cone;
     }
 
     /** Возвращает THREE.Mesh для конуса */
@@ -1189,9 +1234,9 @@ class GraphicObjects {
         label_y.position.set(0, oyAxisLength + fontSize, 0);
         label_z.position.set(0, 0, ozAxisLength + fontSize);
 
-        config.graph.add(label_x);
-        config.graph.add(label_y);
-        config.graph.add(label_z);
+        config.addObjectToContainer(label_x);
+        config.addObjectToContainer(label_y);
+        config.addObjectToContainer(label_z);
     }
 
     /**
@@ -1209,7 +1254,7 @@ class GraphicObjects {
         const label = new THREE.TextSprite(parameters);
 
         label.position.set(x, y, z);
-        config.graph.add(label);
+        return label;
     }
 
     /** Создание освещения на сцене. */
@@ -1235,8 +1280,6 @@ class GraphicObjects {
         const ambientIntensity = 1 - Math.max(intensity1, intensity2);
         const ambientLight = new THREE.AmbientLight(color, ambientIntensity);
         light.add(ambientLight);
-
-        config.graph.add(light);
         return light;
     }
 
@@ -1251,7 +1294,7 @@ class GraphicObjects {
 
         const mesh = new THREE.Mesh(cubeGeo, cubeMat);
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает сферу по заданным координатам */
@@ -1272,7 +1315,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(sphereGeo, sphereMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает тетраэдр по заданным координатам */
@@ -1288,7 +1331,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(tetrahedronGeo, tetrahedronMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает додекаэдр (двенадцатигранник) по заданным координатам */
@@ -1306,7 +1349,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(dodecahedronGeo, dodecahedronMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает цилиндр по заданным координатам */
@@ -1322,7 +1365,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(cylinderGeo, cylinderMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает тор по заданным координатам */
@@ -1346,7 +1389,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(torusGeo, torusMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает тор всего с 4 сегментами по заданным координатам */
@@ -1371,7 +1414,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(torusGeo, torusMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает тор узелком по заданным координатам */
@@ -1404,7 +1447,7 @@ class GraphicObjects {
         const mesh = new THREE.Mesh(torusKnotGeo, torusKnotMat);
 
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+        return mesh;
     }
 
     /** Создает октаэдр по заданным координатам */
@@ -1421,18 +1464,19 @@ class GraphicObjects {
 
         const mesh = new THREE.Mesh(octahedronGeo, octahedronMat);
         mesh.position.set(x, y, z);
-        config.graph.add(mesh);
+
+        return mesh;
     }
 
-    /** Создает октаэдр по заданным координатам */
-    static createOctahedronWithTexture(x, y, z, colorIndex) {
-        // https://stackoverflow.com/questions/7919516/using-textures-in-three-js
+    // /** Создает октаэдр по заданным координатам */
+    // static createOctahedronWithTexture(x, y, z, colorIndex) {
+    //     // https://stackoverflow.com/questions/7919516/using-textures-in-three-js
 
-        const loader = new THREE.TextureLoader();
-        loader.load("./textures/glass_texture_5.jpeg", function (texture) {
-            GraphicObjects.createOctahedron(x, y, z, colorIndex, texture);
-        });
-    }
+    //     const loader = new THREE.TextureLoader();
+    //     loader.load("./textures/glass_texture_5.jpeg", function (texture) {
+    //         GraphicObjects.createOctahedron(x, y, z, colorIndex, texture);
+    //     });
+    // }
 
     /**
      * Подсчитывает количество полигонов объекта THREE.Mesh
@@ -1488,15 +1532,69 @@ class View {
      */
     constructor(modelContext) {
         this.modelContext = modelContext;
+        // this.allVertexMeshes = [];
 
         this.updateSceneSize();
         this.setupSceneView();
         this.setupGraphView();
+
+        this.initEventListeners();
     }
 
-    rebuildSceneObjects() {
+    rebuildScene() {
+        // this.allVertexMeshes = [];
+
         this.setupSceneView();
         this.setupGraphView();
+    }
+
+    initEventListeners() {
+        window.addEventListener("mousemove", this.onMouseMove, false);
+        document.addEventListener("mousedown", this.onDocumentMouseDown, false); // !!!!
+
+        // document.addEventListener("keyup", onDocumentKeyUp, false);
+    }
+
+    onMouseMove(event) {
+        // 123
+    }
+
+    onDocumentMouseDown(event) {
+        console.log("in onDocumentMouseDown func");
+        event.preventDefault();
+
+        // reference
+        // https://discourse.threejs.org/t/select-an-object-using-mouse-click/4996/10
+
+        // var rect = _domElement.getBoundingClientRect();
+        // _mouse.x = ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
+        // _mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;
+        // _raycaster.setFromCamera( _mouse, _camera );
+
+        const rect = config.renderer.domElement.getBoundingClientRect(); // ???
+
+        config.mouse.set(
+            ((event.clientX - rect.left) / rect.width) * 2 - 1,
+            -((event.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        config.raycaster.setFromCamera(config.mouse, config.camera);
+
+        const intersects = config.raycaster.intersectObjects(config.allObjects);
+        // console.log(intersects);
+
+        if (intersects.length > 0) {
+            const nearestVertexObject = intersects[0];
+            const pos = nearestVertexObject.object.position;
+
+            const vertexCoords = [
+                Graph.coordinateReversedTransform(pos.x),
+                Graph.coordinateReversedTransform(pos.y),
+                Graph.coordinateReversedTransform(pos.z),
+            ];
+
+            console.log(vertexCoords);
+        }
     }
 
     /** Обновление размера сцены по осям */
@@ -1515,7 +1613,8 @@ class View {
 
     /** Наполнение сцены светом, осями координат */
     setupSceneView() {
-        const lightContext1 = GraphicObjects.createLight();
+        const light = GraphicObjects.createLight();
+        config.addObjectToContainer(light);
 
         // config.controls.addEventListener("change", function () {
         //     const x = config.camera.position.x;
@@ -1565,104 +1664,108 @@ class View {
         // 15 - темно серый
         // 16 - золотой
 
-        let color = 1; // дефолт
+        let colorIndex = 1; // default
 
         if (vertex.type == 0 && !config.params.paintIO) {
-            color = 8;
+            colorIndex = 8;
         } else if (config.params.showLevel) {
             if (vertex.level == config.params.level) {
-                color = 2;
+                colorIndex = 2;
             } else if (vertex.level < config.params.level) {
-                color = 4;
+                colorIndex = 4;
             }
         }
+
+        var vertexMesh;
 
         switch (vertex.type) {
             case "0": {
                 // input/output vertex
-                GraphicObjects.createOctahedron(
+                vertexMesh = GraphicObjects.createOctahedron(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "1": {
-                GraphicObjects.createSphere(
+                vertexMesh = GraphicObjects.createSphere(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "2": {
-                GraphicObjects.createDodecahedron(
+                vertexMesh = GraphicObjects.createDodecahedron(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "3": {
-                GraphicObjects.createCylinder(
+                vertexMesh = GraphicObjects.createCylinder(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "4": {
-                GraphicObjects.createCube(
+                vertexMesh = GraphicObjects.createCube(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "5": {
                 // GraphicObjects.createTetrahed
-                GraphicObjects.createTorus(
+                vertexMesh = GraphicObjects.createTorus(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "6": {
-                GraphicObjects.createTorus_4(
+                vertexMesh = GraphicObjects.createTorus_4(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             case "7": {
-                GraphicObjects.createTorusKnot(
+                vertexMesh = GraphicObjects.createTorusKnot(
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
             default: {
-                GraphicObjects.createCustomText(
+                vertexMesh = GraphicObjects.createCustomText(
                     "?",
                     vertex.pos.x,
                     vertex.pos.y,
                     vertex.pos.z,
-                    color
+                    colorIndex
                 );
                 break;
             }
         }
+
+        config.addObjectToContainer(vertexMesh);
     }
 
     /**
@@ -1785,15 +1888,15 @@ class InfoBlockController {
             }
         }
 
-        document.getElementById("textInfoBlock_0").innerHTML = content;
+        document.getElementById("graphInfoBlock").innerHTML = content;
     }
 
     static changeFPSInfoBlock(text1, text2) {
         const content1 = "<h4>" + text1 + "</h4>";
         const content2 = "<h4>" + text2 + "</h4>";
 
-        document.getElementById("textInfoBlock_1").innerHTML = content1;
-        document.getElementById("textInfoBlock_2").innerHTML = content2;
+        document.getElementById("fpsInfoBlock_1").innerHTML = content1;
+        document.getElementById("fpsInfoBlock_2").innerHTML = content2;
     }
 }
 
