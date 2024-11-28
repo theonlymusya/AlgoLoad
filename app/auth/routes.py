@@ -3,12 +3,21 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 from werkzeug.urls import url_parse
 
+# import traceback
+
 from app import dataBase
 from app.auth import bluePrint
 from app.auth.forms import LoginForm
 from app.models import User, debug_print
 
 # from app.auth.forms import RegisterForm
+
+
+# @bluePrint.after_request
+# def log_response_headers(response):
+#     # # Здесь доступны заголовки для анализа или логирования
+#     # print("Response Headers (after_request):", response.headers)
+#     # return response
 
 
 # По умолчанию функция просмотра принимает только запрос GET,
@@ -36,6 +45,28 @@ def login_usr():
 
     # Пришли сюда в первый раз
     return render_template("auth/login.html", title="Вход в систему", form=form)
+
+
+@bluePrint.route("/login_app", methods=["GET", "POST"])
+def login_usr_app():
+    form = LoginForm()
+
+    # Уже залогинены
+    if current_user.is_authenticated:
+        return "Authenticated"
+
+    # Отправили заполненную форму
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Invalid username or password")
+            return "invalid"
+
+        login_user(user, remember=form.remember_me.data)
+        return "Logined"
+
+    # Пришли сюда в первый раз
+    return "Empty"
 
 
 @bluePrint.route("/logout")

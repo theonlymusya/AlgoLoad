@@ -57,7 +57,7 @@ h1 {
 }
 
 #graphInfoBlock {
-    border: 2px solid red;
+    /* border: 2px solid red; */
     /* position: absolute; */
     opacity: 1;
     left: 20px;

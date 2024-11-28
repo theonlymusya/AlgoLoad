@@ -9,6 +9,9 @@ from wtforms.fields.html5 import URLField
 
 
 class EditProfileForm(FlaskForm):
+    class Meta:
+        csrf = False
+
     username = StringField("Номер варианта", validators=[DataRequired()])
     about_me = TextAreaField("Контактные данные", validators=[Length(min=0, max=140)])
     local_folder = TextAreaField("Локальный путь", validators=[Length(min=0, max=140)])
@@ -26,6 +29,9 @@ class EditProfileForm(FlaskForm):
 
 
 class TaskSubmitForm(FlaskForm):
+    class Meta:
+        csrf = False
+
     task_code = TextAreaField(
         "Комментарий к заданию", validators=[Length(min=0, max=16384)]
     )
@@ -44,6 +50,9 @@ class TaskSubmitForm(FlaskForm):
 
 
 class TaskReceiveForm(FlaskForm):
+    class Meta:
+        csrf = False
+
     task_code = TextAreaField(
         "Комментарий к результату", validators=[Length(min=0, max=16384)]
     )
@@ -54,6 +63,9 @@ class TaskReceiveForm(FlaskForm):
 
 
 class ReportSubmitForm(FlaskForm):
+    class Meta:
+        csrf = False
+
     file_data = FileField(
         "Загрузить новый отчет",
         validators=[

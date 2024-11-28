@@ -64,7 +64,18 @@ def create_app(config_class=Config()):
     # enable CORS
     # https://stackoverflow.com/questions/65630743/how-to-solve-flutter-web-api-cors-error-only-with-dart-code/66879350#66879350
     # https://enable-cors.org/server_flask.html
-    cors = CORS(app_flask)
+    # cors = CORS(app_flask)
+
+    # todo: replace
+    # Укажите здесь конкретный домен, с которого будут приходить запросы
+    allowed_origin = "http://localhost:61757"
+
+    # Настройка CORS
+    CORS(
+        app_flask,
+        supports_credentials=True,
+        resources={r"/*": {"origins": allowed_origin}},
+    )
 
     dataBase.init_app(app_flask)
     migrate.init_app(app_flask, dataBase)

@@ -7,6 +7,9 @@ from wtforms.validators import ValidationError, Email, EqualTo
 
 
 class LoginForm(FlaskForm):
+    class Meta:
+        csrf = False
+
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     remember_me = BooleanField("Remember Me")
