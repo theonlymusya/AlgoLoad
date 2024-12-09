@@ -68,7 +68,7 @@ def create_app(config_class=Config()):
 
     # todo: replace
     # Укажите здесь конкретный домен, с которого будут приходить запросы
-    allowed_origin = "http://localhost:61757"
+    allowed_origin = config_class.FLUTTER_APP_BASE_URL
 
     # Настройка CORS
     CORS(

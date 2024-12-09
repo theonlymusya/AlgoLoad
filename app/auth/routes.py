@@ -47,26 +47,26 @@ def login_usr():
     return render_template("auth/login.html", title="Вход в систему", form=form)
 
 
-@bluePrint.route("/login_app", methods=["GET", "POST"])
+@bluePrint.route("/app/login", methods=["GET", "POST"])
 def login_usr_app():
     form = LoginForm()
 
     # Уже залогинены
     if current_user.is_authenticated:
-        return "Authenticated"
+        return "{result: Already authorized}"
 
     # Отправили заполненную форму
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password")
-            return "invalid"
+            return "{result: Invalid username or password}"
 
         login_user(user, remember=form.remember_me.data)
-        return "Logined"
+        return "{result: Authorized successfully}"
 
     # Пришли сюда в первый раз
-    return "Empty"
+    return "{result: Login form not filled}"
 
 
 @bluePrint.route("/logout")

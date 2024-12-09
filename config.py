@@ -10,8 +10,13 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(object):
+    # todo: replace
+    FLUTTER_APP_BASE_URL = "http://localhost:50079"
+
     # Ключ безопасности - защита от CSRF
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
+
+    # todo: clean
 
     # Решение (?) проблем с werkzeug.exceptions.NotFound
     # https://github.com/apache/superset/issues/20319

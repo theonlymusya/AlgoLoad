@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Dev boot",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "/bin/bash",
+            "program": "${workspaceFolder}/start_server.sh",
+            "args": [],
+            "console": "integratedTerminal"
+        }
+    ]
+}
