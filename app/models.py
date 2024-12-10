@@ -69,12 +69,12 @@ def debug_print(*values: object):
     # flask_app.logger.info("...")
 
     try:
-        print("PYTHON DEBUG MESSAGE: ")
+        print("\nPYTHON DEBUG MESSAGE: ")
 
         for value in values:
             print(value, end=" ")
 
-        print(f"\n{'=' * 50}\n\n")
+        print(f"\n{'=' * 50}\n")
 
     except:
         pass

@@ -39,7 +39,7 @@ class TaskSubmitForm(FlaskForm):
         "Загрузить описание графа",
         validators=[
             FileRequired(),
-            FileAllowed(["xml", "json"], "Только XML-описания!"),
+            FileAllowed(["xml", "json"], "XML/JSON описания."),
         ],
     )  # json для дебага C++ скрипта
 

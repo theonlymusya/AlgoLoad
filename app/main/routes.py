@@ -1,17 +1,31 @@
 # -*- coding: utf-8 -*-
 import os
-from datetime import datetime
 from os import path
-
-from flask import (current_app, flash, make_response, redirect,
-                   render_template, request, send_from_directory, url_for)
+from datetime import datetime
 from flask_login import current_user, login_required
-
+from app.models import Report, User, abs_volume_path, debug_print
 from app import dataBase
 from app.main import bluePrint
-from app.main.forms import (EditProfileForm, ReportSubmitForm, TaskReceiveForm,
-                            TaskSubmitForm)
-from app.models import Report, User, abs_volume_path, debug_print
+import shutil
+
+
+from flask import (
+    current_app,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
+
+from app.main.forms import (
+    EditProfileForm,
+    ReportSubmitForm,
+    TaskReceiveForm,
+    TaskSubmitForm,
+)
 
 
 @bluePrint.route("/")
@@ -51,7 +65,7 @@ def before_request():
         dataBase.session.commit()
 
 
-# Пути к ресурсным файлам юзверя
+# Пути к ресурсным файлам юзера
 @bluePrint.route("/user/<username>/<path:path>", methods=["GET"])
 def send_textures(username, path):
     # debug_print(f">>> [GET] path = {path}")
@@ -103,7 +117,7 @@ def user_page(username):
 def download_var(username):
     user = User.query.filter_by(username=username).first_or_404()
     vars_path = abs_volume_path + "vars"
-    
+
     return send_from_directory(
         # directory="/home/flask_skipod/volume/vars", # для докера
         directory=vars_path,  # без докера
@@ -278,43 +292,55 @@ def upload_task():
 
         # Нужно записать в эту директорию загнанные данные и запустить архитектора.
         if os.path.exists(cur_abs_path + usr_tsk_path):
-            # Запись комментария юзверя
+            # Запись комментария юзера
             fd = os.open(
                 cur_abs_path + usr_tsk_path + "/Task_code.txt", os.O_RDWR | os.O_CREAT
             )
             os.write(fd, bytes(form.task_code.data, "utf-8"))
             os.close(fd)
 
-            # Запись разметки, загруженной юзверем
-            # В сети предлагают чекать имя файла через werkzeug, чего я сделать не могу из-за отсутствия в werkzeug этой функции
-            graph_name = form.file_data.data.filename
-            form.file_data.data.save(cur_abs_path + usr_tsk_path + "/" + graph_name)
+            # (???) В сети предлагают чекать имя файла через werkzeug,
+            # чего я сделать не могу из-за отсутствия в werkzeug этой функции
+            # https://tedboy.github.io/flask/generated/generated/werkzeug.FileStorage.html
+            file = form.file_data.data
+            graph_name = file.filename
 
             # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
             graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
-            graph_output_dirs = cur_abs_path + usr_pge_path + "/Json_models"
-            cpp_output_file_path = graph_output_dirs + "/graphData.json"
+            graph_output_dir = cur_abs_path + usr_pge_path + "/Json_models"
+            cpp_output_file = graph_output_dir + "/graphData.json"
+
+            # Запись разметки, загруженной юзером
+            debug_print(f">>>>>>> file = {file}")
+            debug_print(f">>>>>>> graph_config_file = {graph_config_file}")
+            file.save(graph_config_file)
 
             # Нужно снести все старые данные графа
             try:
-                os.remove(os.path.join(graph_output_dirs, "graphData.json"))
+                os.remove(os.path.join(graph_output_dir, "graphData.json"))
             except OSError:
                 pass
 
             if graph_config_file.endswith(".json"):
-                debug_print(f"*\n*\n*\n>>>>>>> Загрузили .json\n*")
-                os.replace(graph_config_file, cpp_output_file_path)
-            else:  # новый архитектор
-                # graph_appgen_path_new_cpp = cur_abs_path + "/scripts/main"
-                graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
-                os_command_new_cpp = f"{graph_appgen_path_new_cpp} {graph_config_file} {cpp_output_file_path}"
+                debug_print(f">>>>>>> Загрузили .json")
+                # os.replace(graph_config_file, cpp_output_file_path)
+                shutil.copy(graph_config_file, cpp_output_file)
 
-                debug_print(f"*\n*\n*\n>>>>>>> OS run {os_command_new_cpp}\n*")
+            else:
+                architect_script_file = cur_abs_path + "/architect/main"
+                os_command_new_cpp = (
+                    f"{architect_script_file} {graph_config_file} {cpp_output_file}"
+                )
+
+                debug_print(f">>>>>>> OS run {os_command_new_cpp}")
                 os.system(os_command_new_cpp)
 
             # сохранение таска в бд
-            current_user.task_file = form.file_data.data.filename
+            debug_print(f">>>>>>> Cохранение таска в бд {graph_name}")
+            current_user.task_file = graph_name
             dataBase.session.commit()
+
+        debug_print(f">>>>>>> upload_task finish")
 
         # Всё необходимое создано, возвращаемся на страницу пользователя
         user = User.query.filter_by(username=current_user.username).first_or_404()
@@ -353,8 +379,19 @@ def receive_task():
 
         # Получаем xml-код пользователя (или оставляем пустым если был загружен .json)
         try:
+            # ???
+            debug_print(
+                f">>>>>>> [receive_task] 1.path: {user_task_path + "/" + current_user.task_file}"
+            )
+
             fd = os.open(user_task_path + "/" + current_user.task_file, os.O_RDONLY)
+
+            debug_print(f">>>>>>> [receive_task] 2.fd: {fd}")
+
             bytes_data = os.read(fd, 16384)
+
+            debug_print(f">>>>>>> [receive_task] 3.bytes_data: {bytes_data}")
+
             xml_code = bytes_data.decode("utf-8")
         except:
             xml_code = "Ошибка получения XML кода задачи."
