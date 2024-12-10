@@ -281,20 +281,25 @@ def upload_task():
     if form.validate_on_submit():
         # Определим вспомогательные переменные
         cur_abs_path = os.path.abspath(os.path.curdir)
-        usr_tsk_path = "/volume/userdata/" + current_user.local_folder + "/task"
-        usr_pge_path = "/volume/userdata/" + current_user.local_folder + "/page"
+        local_volume_user_dir = "/volume/userdata/" + current_user.local_folder
+        volume_user_task_dir = cur_abs_path + local_volume_user_dir + "/task"
+        volume_user_page_dir = cur_abs_path + local_volume_user_dir + "/page"
+        volume_user_page_models_dir = volume_user_page_dir + "/Json_models"
 
         # Нужно создать ещё и локальную директорию для отображения результатов
-        if not os.path.exists(cur_abs_path + usr_pge_path):
+        if not os.path.exists(volume_user_page_dir):
             os.makedirs(
-                cur_abs_path + usr_pge_path + "/Json_models", mode=0x777, exist_ok=True
+                volume_user_page_models_dir,
+                mode=0x777,
+                exist_ok=True,
             )
 
         # Нужно записать в эту директорию загнанные данные и запустить архитектора.
-        if os.path.exists(cur_abs_path + usr_tsk_path):
+        if os.path.exists(volume_user_task_dir):
             # Запись комментария юзера
             fd = os.open(
-                cur_abs_path + usr_tsk_path + "/Task_code.txt", os.O_RDWR | os.O_CREAT
+                volume_user_task_dir + "/Task_code.txt",
+                os.O_RDWR | os.O_CREAT,
             )
             os.write(fd, bytes(form.task_code.data, "utf-8"))
             os.close(fd)
@@ -306,31 +311,31 @@ def upload_task():
             graph_name = file.filename
 
             # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
-            graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
-            graph_output_dir = cur_abs_path + usr_pge_path + "/Json_models"
-            cpp_output_file = graph_output_dir + "/graphData.json"
+            graph_input_config_file = volume_user_task_dir + "/" + graph_name
+            graph_output_config_file = volume_user_page_models_dir + "/graphData.json"
+            graph_input_config_last_file = volume_user_task_dir + "/last_input_config"
 
             # Запись разметки, загруженной юзером
             debug_print(f">>>>>>> file = {file}")
-            debug_print(f">>>>>>> graph_config_file = {graph_config_file}")
-            file.save(graph_config_file)
+            debug_print(f">>>>>>> graph_config_file = {graph_input_config_file}")
+            file.save(graph_input_config_file)
+
+            # для удобства дуюлируем файл
+            shutil.copy(graph_input_config_file, graph_input_config_last_file)
 
             # Нужно снести все старые данные графа
             try:
-                os.remove(os.path.join(graph_output_dir, "graphData.json"))
+                os.remove(os.path.join(volume_user_page_models_dir, "graphData.json"))
             except OSError:
                 pass
 
-            if graph_config_file.endswith(".json"):
+            if graph_input_config_file.endswith(".json"):
                 debug_print(f">>>>>>> Загрузили .json")
-                # os.replace(graph_config_file, cpp_output_file_path)
-                shutil.copy(graph_config_file, cpp_output_file)
+                shutil.copy(graph_input_config_file, graph_output_config_file)
 
             else:
                 architect_script_file = cur_abs_path + "/architect/main"
-                os_command_new_cpp = (
-                    f"{architect_script_file} {graph_config_file} {cpp_output_file}"
-                )
+                os_command_new_cpp = f"{architect_script_file} {graph_input_config_file} {graph_output_config_file}"
 
                 debug_print(f">>>>>>> OS run {os_command_new_cpp}")
                 os.system(os_command_new_cpp)
