@@ -11,7 +11,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
     # todo: replace
-    FLUTTER_APP_BASE_URL = "http://localhost:50079"
+    FLUTTER_APP_BASE_URL_DEV = "http://localhost:60314"
+    FLUTTER_APP_BASE_URL_PROD = "http://localhost:54026"
 
     # Ключ безопасности - защита от CSRF
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"

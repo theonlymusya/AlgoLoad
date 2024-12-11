@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from os import path
 from datetime import datetime
 from flask_login import current_user, login_required
+from app.main.receive_task_responce import ReceiveTaskResponce
 from app.models import Report, User, abs_volume_path, debug_print
 from app import dataBase
 from app.main import bluePrint
@@ -10,7 +10,6 @@ import shutil
 
 
 from flask import (
-    current_app,
     flash,
     make_response,
     redirect,
@@ -22,7 +21,6 @@ from flask import (
 
 from app.main.forms import (
     EditProfileForm,
-    ReportSubmitForm,
     TaskReceiveForm,
     TaskSubmitForm,
 )
@@ -357,66 +355,28 @@ def upload_task():
     return render_template("upload_task.html", title="Загрузка задания", form=form)
 
 
+# Просмотр результирующей картинки. для сайта
 @bluePrint.route("/receive_task", methods=["GET"])
 @login_required
 def receive_task():
-    # debug_print(">>> in /receive_task")
+    responce = ReceiveTaskResponce()
 
-    # Просмотр результирующей картинки.
-    cur_abs_path = os.path.abspath(os.path.curdir)
-    user_task_path = f"{cur_abs_path}/volume/userdata/{current_user.local_folder}/task"
-
-    # Настройка формы
     form = TaskReceiveForm()
-    if os.path.exists(user_task_path):
-        # Закинем комментарии юзера в его же форму
-        try:
-            fd = os.open(user_task_path + "/Task_code.txt", os.O_RDONLY)
-            bytes_data = os.read(fd, 16384)
-            form.task_code.data = bytes_data.decode("utf-8")
-            # <-- тут вылетает ошибка при декодировании (редко)
-            # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb5 in position 83: invalid start byte
-
-            # with open(user_task_path + "/Task_code.txt", "rb") as f:
-            #     form.task_code.data = f.read()
-        except:
-            form.task_code.data = "Ошибка получения описания задачи."
-
-        # Получаем xml-код пользователя (или оставляем пустым если был загружен .json)
-        try:
-            # ???
-            debug_print(
-                f">>>>>>> [receive_task] 1.path: {user_task_path + "/" + current_user.task_file}"
-            )
-
-            fd = os.open(user_task_path + "/" + current_user.task_file, os.O_RDONLY)
-
-            debug_print(f">>>>>>> [receive_task] 2.fd: {fd}")
-
-            bytes_data = os.read(fd, 16384)
-
-            debug_print(f">>>>>>> [receive_task] 3.bytes_data: {bytes_data}")
-
-            xml_code = bytes_data.decode("utf-8")
-        except:
-            xml_code = "Ошибка получения XML кода задачи."
-
-    # Настройка пути к визуализационной странице и рендер всего ресурса
-    # algoview_source = "/user/" + current_user.username + "/get_data" # больше не работает
-
-    # old: http://localhost:3001/user/q000/AlgoViewPage.html
-    # algoview_source = "/user/" + current_user.username + "/AlgoViewPage.html"
-
-    # static: http://localhost:3001/static/AlgoViewPage.html
-    algoview_source = "/static/AlgoViewPage.html"
-
-    json_data_source = "/user/" + current_user.username + "/Json_models/graphData.json"
+    form.task_code.data = responce.user_comment
 
     return render_template(
         "result_task.html",
         title="Результат",
         form=form,
-        algoview_source=algoview_source,
-        json_data_source=json_data_source,
-        xml_code=xml_code,
+        algoview_source=responce.algoview_static_link,
+        json_data_source=responce.json_graph_data_link,
+        xml_code=responce.graph_source_config,
     )
+
+
+# Просмотр результирующей картинки. для приложеня
+@bluePrint.route("/app/receive_task", methods=["GET"])
+@login_required
+def receive_task_app():
+    responce = ReceiveTaskResponce()
+    return responce.to_json()

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import flash, redirect, render_template, request, url_for
+from flask.json import jsonify
 from flask_login import current_user, login_user, logout_user
 from werkzeug.urls import url_parse
 
@@ -53,20 +54,20 @@ def login_usr_app():
 
     # Уже залогинены
     if current_user.is_authenticated:
-        return "{result: Already authorized}"
+        return jsonify({"result": "Already authorized"})
 
     # Отправили заполненную форму
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password")
-            return "{result: Invalid username or password}"
+            return jsonify({"result": "Invalid username or password"})
 
         login_user(user, remember=form.remember_me.data)
-        return "{result: Authorized successfully}"
+        return jsonify({"result": "Authorized successfully"})
 
     # Пришли сюда в первый раз
-    return "{result: Login form not filled}"
+    return jsonify({"result": "Login form not filled"})
 
 
 @bluePrint.route("/logout")

@@ -68,13 +68,16 @@ def create_app(config_class=Config()):
 
     # todo: replace
     # Укажите здесь конкретный домен, с которого будут приходить запросы
-    allowed_origin = config_class.FLUTTER_APP_BASE_URL
+    allowed_origins = [
+        config_class.FLUTTER_APP_BASE_URL_DEV,
+        config_class.FLUTTER_APP_BASE_URL_PROD,
+    ]
 
     # Настройка CORS
     CORS(
         app_flask,
         supports_credentials=True,
-        resources={r"/*": {"origins": allowed_origin}},
+        resources={r"/*": {"origins": allowed_origins}},
     )
 
     dataBase.init_app(app_flask)
