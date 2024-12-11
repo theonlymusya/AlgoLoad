@@ -25,7 +25,9 @@ class DataLoader {
         const url = new URL(window.location.href);
         const jsonGraphDataUrl = url.searchParams.get("jsonGraphDataUrl");
 
-        console.log(`jsonGraphDataUrl = ${jsonGraphDataUrl}.`);
+        console.log(
+            `[algoview.dataloader] jsonGraphDataUrl = ${jsonGraphDataUrl}.`
+        );
 
         let rawData = "";
 
@@ -34,7 +36,7 @@ class DataLoader {
             url: jsonGraphDataUrl,
             headers: { "cache-control": "no-cache" }, // !!!
             success: function (data) {
-                console.log("data from ajax.get = ", data);
+                console.log("[algoview.dataloader] data from ajax.get: ", data);
                 rawData = data;
             },
         });

@@ -379,4 +379,4 @@ def receive_task():
 @login_required
 def receive_task_app():
     responce = ReceiveTaskResponce()
-    return responce.to_json()
+    return responce.to_json(), 200

@@ -54,26 +54,34 @@ def login_usr_app():
 
     # Уже залогинены
     if current_user.is_authenticated:
-        return jsonify({"result": "Already authorized"})
+        return jsonify({"result": "Already authorized"}), 200
 
     # Отправили заполненную форму
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash("Invalid username or password")
-            return jsonify({"result": "Invalid username or password"})
+            # используется для отправки временных сообщений пользователю.
+            # flash("Invalid username or password")
+
+            return jsonify({"result": "Invalid username or password"}), 400
 
         login_user(user, remember=form.remember_me.data)
-        return jsonify({"result": "Authorized successfully"})
+        return jsonify({"result": "Authorized successfully"}), 200
 
-    # Пришли сюда в первый раз
-    return jsonify({"result": "Login form not filled"})
+    # Форма не заполнена
+    return jsonify({"result": "Login form not filled"}), 400
 
 
 @bluePrint.route("/logout")
 def logout_usr():
     logout_user()
     return redirect(url_for("main.index"))
+
+
+@bluePrint.route("/app/logout")
+def logout_usr_app():
+    logout_user()
+    return jsonify({"result": "Logout successfully"})
 
 
 # @bluePrint.route('/register', methods=['GET', 'POST'])
