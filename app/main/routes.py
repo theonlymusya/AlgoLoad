@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 from flask_login import current_user, login_required
+from app.main.architect_job import ArchitectJob
 from app.main.receive_task_responce import ReceiveTaskResponce
 from app.models import Report, User, abs_volume_path, debug_print
 from app import dataBase
@@ -271,9 +272,9 @@ def edit_profile():
 #     return render_template('admin.html', title='Администрирование')
 
 
-@bluePrint.route("/upload_task", methods=["GET", "POST"])
+@bluePrint.route("/upload_task_old", methods=["GET", "POST"])
 @login_required
-def upload_task():
+def upload_task_old():
     form = TaskSubmitForm()
     # Сохраняем изменения на странице
     if form.validate_on_submit():
@@ -353,6 +354,40 @@ def upload_task():
         )
 
     return render_template("upload_task.html", title="Загрузка задания", form=form)
+
+
+@bluePrint.route("/upload_task", methods=["GET", "POST"])
+@login_required
+def upload_task():
+    form = TaskSubmitForm()
+
+    if form.validate_on_submit():
+        ArchitectJob(form.task_code.data, form.file_data.data)
+
+        # Возвращаемся на страницу пользователя
+        user = User.query.filter_by(username=current_user.username).first_or_404()
+        graph_name = form.file_data.data.filename
+
+        return render_template(
+            "user.html", title="Моя страница", user=user, graph_name=graph_name
+        )
+
+    return render_template("upload_task.html", title="Загрузка задания", form=form)
+
+
+@bluePrint.route("/app/upload_task", methods=["GET", "POST"])
+@login_required
+def upload_task_app():
+    form = TaskSubmitForm()
+
+    if form.validate_on_submit():
+        job = ArchitectJob(form.task_code.data, form.file_data.data)
+        return job.to_responce()
+
+    return (
+        f"Invalid form: form.task_code = {form.task_code.data}, form.submit = {form.file_data.data}, form.submit = {form.submit.data}, ",
+        400,
+    )
 
 
 # Просмотр результирующей картинки. для сайта
