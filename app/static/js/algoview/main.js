@@ -18,8 +18,8 @@ class Params {
 
         this.showGraphCharacteristics = true;
         this.showErrors = true;
-        this.showWarnings = true;
-        this.showSystemLoadInfo = true;
+        this.showWarnings = false;
+        this.showSystemLoadInfo = false;
 
         /** уровень ярусно параллельной формы */
         this.level = 0;
@@ -212,9 +212,10 @@ class AlgoViewConfiguration {
         const folderLevelControls = this.gui.addFolder("Parallel Form");
         const folderSceneControls = this.gui.addFolder("Scene Controls");
 
-        folderViewSettins.open();
+        // folderViewSettins.open();
         folderCameraControls.open();
         folderLevelControls.open();
+        // folderSceneControls.open();
 
         const thisContextTrans = this;
         const controllerContextTrans = this.controllerContext;
@@ -1823,7 +1824,7 @@ class Controller {
         if (!this.appManagerContext.isBuildDone()) return;
 
         config.clearScene();
-        this.viewContext.rebuildSceneObjects();
+        this.viewContext.rebuildScene();
         console.log("done rebuild");
     }
 
@@ -2036,7 +2037,7 @@ function resizeRendererToDisplaySize() {
 async function renderLoop() {
     if (app.appManager.buildStatus != "done") {
         console.log("Waiting for the application to finish building.");
-        await sleep(100);
+        await sleep(200);
         requestAnimationFrame(renderLoop);
         return;
     }

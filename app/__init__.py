@@ -70,6 +70,7 @@ def create_app(config_class=Config()):
     # Укажите здесь конкретный домен, с которого будут приходить запросы
     allowed_origins = [
         config_class.FLUTTER_APP_BASE_URL_DEV,
+        config_class.FLUTTER_APP_BASE_URL_STAGING,
         config_class.FLUTTER_APP_BASE_URL_PROD,
     ]
 

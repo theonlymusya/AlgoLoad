@@ -10,7 +10,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(object):
-    FLUTTER_APP_BASE_URL_DEV = "http://localhost:50749"
+    FLUTTER_APP_BASE_URL_DEV = "http://localhost:56912"
+    FLUTTER_APP_BASE_URL_STAGING = "https://jqp4.github.io/algoload-flutter-demo"
     FLUTTER_APP_BASE_URL_PROD = "http://localhost:54026"  # todo: replace
 
     # Ключ безопасности - защита от CSRF
