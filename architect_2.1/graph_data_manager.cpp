@@ -24,7 +24,7 @@ VertexId VertexMapManager::add_vertex(const BlockId &blockId,
         .i = i, .j = j, .k = k,
         .x = x, .y = y, .z = z,
         .level = (type == "0") ? 0 : 1,
-        .type = type
+        .type = type,
         };
 
     reverseVerticesMap_[blockId][Coords{.i = i, .j = j, .k = k}] = new_vertex_id;
