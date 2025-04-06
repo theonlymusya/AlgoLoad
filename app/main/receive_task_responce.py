@@ -5,6 +5,7 @@ from flask_login import current_user
 
 class ReceiveTaskResponce:
     user_comment = ""
+    graph_source_type = "xml"  # xml / json / cpp
     graph_source_config = ""
     algoview_static_link = ""
     json_graph_data_link = ""
@@ -30,11 +31,18 @@ class ReceiveTaskResponce:
 
             # Получаем graph source config
             try:
+
                 fd = os.open(user_task_dir + "/" + current_user.task_file, os.O_RDONLY)
                 bytes_data = os.read(fd, 16384)
                 self.graph_source_config = bytes_data.decode("utf-8")
+
             except:
                 self.graph_source_config = "Ошибка получения XML кода задачи."
+
+            try:
+                self.graph_source_type = self.get_file_extension(current_user.task_file)
+            except:
+                self.graph_source_type = "null"
 
         # static: http://localhost:3001/static/AlgoViewPage.html
         self.algoview_static_link = "/static/AlgoViewPage.html"
@@ -42,10 +50,15 @@ class ReceiveTaskResponce:
             "/user/" + current_user.username + "/Json_models/graphData.json"
         )
 
+    def get_file_extension(self, filename):
+        # Разделяем строку по точке и возвращаем последний элемент
+        return filename.split(".")[-1] if "." in filename else ""
+
     def to_json(self):
         return jsonify(
             {
                 "user_comment": self.user_comment,
+                "graph_source_type": self.graph_source_type,
                 "graph_source_config": self.graph_source_config,
                 "algoview_static_link": self.algoview_static_link,
                 "json_graph_data_link": self.json_graph_data_link,
