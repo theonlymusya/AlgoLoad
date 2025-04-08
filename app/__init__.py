@@ -78,7 +78,13 @@ def create_app(config_class=Config()):
     CORS(
         app_flask,
         supports_credentials=True,
-        resources={r"/*": {"origins": allowed_origins}},
+        resources={
+            r"/*": {
+                "origins": allowed_origins,
+                "allow_headers": ["Content-Type", "Authorization"],
+                "expose_headers": ["Access-Control-Allow-Credentials"],
+            }
+        },
     )
 
     dataBase.init_app(app_flask)

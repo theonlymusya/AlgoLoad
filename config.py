@@ -11,7 +11,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
     FLUTTER_APP_BASE_URL_DEV = "http://localhost:63369"
-    FLUTTER_APP_BASE_URL_STAGING = "https://jqp4.github.io/algoload-flutter-demo"
+    FLUTTER_APP_BASE_URL_STAGING = "http://45.153.231.45:8080"
     FLUTTER_APP_BASE_URL_PROD = "http://localhost:54026"  # todo: replace
 
     # Ключ безопасности - защита от CSRF
@@ -21,14 +21,15 @@ class Config(object):
 
     # Решение (?) проблем с werkzeug.exceptions.NotFound
     # https://github.com/apache/superset/issues/20319
-    SESSION_COOKIE_SAMESITE = "Lax"
+    # SESSION_COOKIE_SAMESITE = "Lax"
+    # SESSION_COOKIE_SECURE = False
     # SESSION_COOKIE_HTTPONLY = True
 
-    # SESSION_COOKIE_SAMESITE = "None"
-    # SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SECURE = False
 
     # new
-    SESSION_COOKIE_HTTPONLY = False
+    # SESSION_COOKIE_HTTPONLY = False
     # REMEMBER_COOKIE_HTTPONLY = False
 
     # База данных
