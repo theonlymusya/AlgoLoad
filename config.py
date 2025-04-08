@@ -25,16 +25,11 @@ class Config(object):
 
     # Решение (?) проблем с werkzeug.exceptions.NotFound
     # https://github.com/apache/superset/issues/20319
-    # SESSION_COOKIE_SAMESITE = "Lax"
+
+    SESSION_COOKIE_SAMESITE = "Lax"
+    # SESSION_COOKIE_SAMESITE = "None"
     # SESSION_COOKIE_SECURE = False
     # SESSION_COOKIE_HTTPONLY = True
-
-    SESSION_COOKIE_SAMESITE = "None"
-    SESSION_COOKIE_SECURE = False
-
-    # new
-    # SESSION_COOKIE_HTTPONLY = False
-    # REMEMBER_COOKIE_HTTPONLY = False
 
     # База данных
     SQLALCHEMY_DATABASE_URI = os.environ.get(
