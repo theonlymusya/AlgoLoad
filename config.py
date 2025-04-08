@@ -10,6 +10,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(object):
+    # Папка, в которой находится сборка фронтенда Flutter
+    FLUTTER_WEB_APP_FOLDER = os.path.join(os.path.dirname(basedir), "flutter-build-web")
+    print(f"FLUTTER_WEB_APP_FOLDER = {FLUTTER_WEB_APP_FOLDER}")
+
     FLUTTER_APP_BASE_URL_DEV = "http://localhost:63369"
     FLUTTER_APP_BASE_URL_STAGING = "http://45.153.231.45:8080"
     FLUTTER_APP_BASE_URL_PROD = "http://localhost:54026"  # todo: replace

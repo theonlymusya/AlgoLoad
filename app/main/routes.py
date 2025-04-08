@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 from datetime import datetime
+from flask import current_app
 from flask_login import current_user, login_required
 from app.main.architect_job import ArchitectJob
 from app.main.receive_task_responce import ReceiveTaskResponce
 from app.models import Report, User, abs_volume_path, debug_print
 from app import dataBase
 from app.main import bluePrint
+from flask.json import jsonify
 import shutil
 
 
@@ -37,15 +39,21 @@ def index():
 @bluePrint.route("/app/", defaults={"path": ""})
 @bluePrint.route("/app/<path:path>")
 def frontend_handler(path):
+    flutter_app_folder = current_app.config.get("FLUTTER_WEB_APP_FOLDER")
+
     # Полный путь до запрашиваемого файла
-    full_path = os.path.join(app.static_folder, path)
+    full_path = os.path.join(flutter_app_folder, path)
 
     # Если файл существует (например, стили, скрипты), отдаём его
     if path != "" and os.path.exists(full_path):
-        return send_from_directory(app.static_folder, path)
+        return send_from_directory(flutter_app_folder, path)
 
     # Если файла нет – всегда отдаём index.html, чтобы клиентская маршрутизация Flutter взяла управление
-    return send_from_directory(app.static_folder, "index.html")
+    index_path = os.path.join(flutter_app_folder, "index.html")
+    if os.path.exists(index_path):
+        return send_from_directory(flutter_app_folder, "index.html")
+
+    return jsonify({"result": "invalid index path"}), 400
 
 
 @bluePrint.route("/favicon.ico")
