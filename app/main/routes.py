@@ -34,6 +34,20 @@ def index():
     return render_template("index.html", title="Главная страница")
 
 
+@bluePrint.route("/app/", defaults={"path": ""})
+@bluePrint.route("/app/<path:path>")
+def frontend_handler(path):
+    # Полный путь до запрашиваемого файла
+    full_path = os.path.join(app.static_folder, path)
+
+    # Если файл существует (например, стили, скрипты), отдаём его
+    if path != "" and os.path.exists(full_path):
+        return send_from_directory(app.static_folder, path)
+
+    # Если файла нет – всегда отдаём index.html, чтобы клиентская маршрутизация Flutter взяла управление
+    return send_from_directory(app.static_folder, "index.html")
+
+
 @bluePrint.route("/favicon.ico")
 def favicon():
     cur_abs_path = os.path.abspath(os.path.curdir)
@@ -375,7 +389,7 @@ def upload_task():
     return render_template("upload_task.html", title="Загрузка задания", form=form)
 
 
-@bluePrint.route("/app/upload_task", methods=["GET", "POST"])
+@bluePrint.route("/api/upload_task", methods=["GET", "POST"])
 @login_required
 def upload_task_app():
     form = TaskSubmitForm()
@@ -410,7 +424,7 @@ def receive_task():
 
 
 # Просмотр результирующей картинки. для приложеня
-@bluePrint.route("/app/receive_task", methods=["GET"])
+@bluePrint.route("/api/receive_task", methods=["GET"])
 @login_required
 def receive_task_app():
     responce = ReceiveTaskResponce()

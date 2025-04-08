@@ -48,9 +48,17 @@ def _register_blueprint(app_flask):
 
 
 def create_app(config_class=Config()):
+    # Папка, в которой находится сборка фронтенда Flutter
+    FLUTTER_WEB_APP_FOLDER = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "../../flutter-build-web"
+    )
+
+    print(f"FLUTTER_WEB_APP_FOLDER = {FLUTTER_WEB_APP_FOLDER}")
+
     # Само приложение
-    app_flask = Flask(__name__)
+    app_flask = Flask(__name__, static_folder=FLUTTER_WEB_APP_FOLDER)
     app_flask.config.from_object(config_class)
+
     # app_flask.debug = True
 
     # максимальный возраст кэшируемых файлов, находящихся в /static

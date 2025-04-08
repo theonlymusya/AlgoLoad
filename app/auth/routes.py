@@ -48,7 +48,7 @@ def login_usr():
     return render_template("auth/login.html", title="Вход в систему", form=form)
 
 
-@bluePrint.route("/app/login", methods=["GET", "POST"])
+@bluePrint.route("/api/login", methods=["GET", "POST"])
 def login_usr_app():
     form = LoginForm()
 
@@ -78,7 +78,7 @@ def logout_usr():
     return redirect(url_for("main.index"))
 
 
-@bluePrint.route("/app/logout")
+@bluePrint.route("/api/logout")
 def logout_usr_app():
     logout_user()
     return jsonify({"result": "Logout successfully"})
