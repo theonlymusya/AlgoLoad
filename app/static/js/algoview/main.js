@@ -219,10 +219,10 @@ class AlgoViewConfiguration {
         // https://stackoverflow.com/questions/38762124/how-to-add-folders-in-dat-gui
 
         this.gui = new dat.GUI();
-        const folderViewSettins = this.gui.addFolder("View Settins");
-        const folderCameraControls = this.gui.addFolder("Camera Controls");
-        const folderLevelControls = this.gui.addFolder("Parallel Form");
-        const folderSceneControls = this.gui.addFolder("Scene Controls");
+        const folderViewSettins = this.gui.addFolder("❖ View Settins");
+        const folderCameraControls = this.gui.addFolder("❖ Camera Controls");
+        const folderLevelControls = this.gui.addFolder("❖ Parallel Form");
+        const folderSceneControls = this.gui.addFolder("❖ Scene Controls");
 
         // folderViewSettins.open();
         folderCameraControls.open();

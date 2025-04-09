@@ -6,3 +6,6 @@ lsof -ti:3001 | xargs kill -9 2>/dev/null || true
 
 # Запускаем новый сервер
 sh ./boot2.sh
+
+# test run
+# python3 -m flask run

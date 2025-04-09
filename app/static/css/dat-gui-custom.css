@@ -6,6 +6,19 @@
 .dg.main .close-button {
     background-color: #3c3c3c !important;
     color: #ffffff !important;
+    text-align: center !important;
+    padding: 3px !important;
+    height: 26px !important;
+    margin-left: -1px !important;
+    margin-right: -1px !important;
+    cursor: pointer !important;
+    border-top: 1px solid #505050 !important;
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+.dg.main .close-button:hover {
+    background-color: #505050 !important;
 }
 
 .dg li:not(.folder) {
@@ -21,6 +34,11 @@
 
 .dg .property-name {
     color: #ffffff !important;
+    width: 60% !important;
+}
+
+.dg .c {
+    width: 38% !important;
 }
 
 .dg .c input[type=text] {
