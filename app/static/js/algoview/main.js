@@ -1205,7 +1205,7 @@ class GraphicObjects {
         this.#createAxisText(oxAxisLength, oyAxisLength, ozAxisLength);
     }
 
-    static #getTextParameters(text, fontSize, color = "#000000") {
+    static #getTextParameters(text, fontSize, color = "#FF9A4EFF") {
         return {
             alignment: "center",
             backgroundColor: "rgba(0,0,0,0)",
