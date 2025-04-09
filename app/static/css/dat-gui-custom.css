@@ -1,0 +1,53 @@
+.dg.main {
+    background-color: #2c2c2c !important;
+    border: 1px solid #3c3c3c !important;
+}
+
+.dg.main .close-button {
+    background-color: #3c3c3c !important;
+    color: #ffffff !important;
+}
+
+.dg li:not(.folder) {
+    background: #363636 !important;
+    border-bottom: 1px solid #3c3c3c !important;
+    color: #ffffff !important;
+}
+
+.dg li.title {
+    background: #404040 !important;
+    color: #ffffff !important;
+}
+
+.dg .property-name {
+    color: #ffffff !important;
+}
+
+.dg .c input[type=text] {
+    background: #404040 !important;
+    border: 1px solid #505050 !important;
+    color: #ffffff !important;
+}
+
+.dg .c input[type=checkbox] {
+    accent-color: #2fa1d6 !important;
+}
+
+.dg .c select {
+    background: #404040 !important;
+    border: 1px solid #505050 !important;
+    color: #ffffff !important;
+}
+
+.dg .c .slider {
+    background: #404040 !important;
+}
+
+.dg .c .slider-fg {
+    background: #2fa1d6 !important;
+}
+
+.dg .cr.function .button {
+    background: #2fa1d6 !important;
+    color: #ffffff !important;
+}
