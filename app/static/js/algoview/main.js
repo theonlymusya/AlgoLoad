@@ -32,7 +32,19 @@ class Params {
         this.setDefaultLineWidth();
 
         this.fpsRate = 30;
-        this.cameraType = CameraTypes.perspective;
+        this.isOrthographicCamera = false; // true - orthographic, false - perspective
+    }
+
+    /** Возвращает тип камеры на основе значения переключателя */
+    get cameraType() {
+        return this.isOrthographicCamera
+            ? CameraTypes.orthographic
+            : CameraTypes.perspective;
+    }
+
+    /** Устанавливает значение переключателя на основе типа камеры */
+    set cameraType(value) {
+        this.isOrthographicCamera = value === CameraTypes.orthographic;
     }
 
     /** Обновляет ширину осевых линий */
@@ -347,11 +359,8 @@ class AlgoViewConfiguration {
          */
 
         folderCameraControls
-            .add(this.params, "cameraType", [
-                CameraTypes.perspective,
-                CameraTypes.orthographic,
-            ])
-            .name("Camera type")
+            .add(this.params, "isOrthographicCamera")
+            .name("Orthographic camera")
             .onChange(resetCameraCallback);
 
         folderCameraControls.add(this, "setXYView").name("Set XY view");
