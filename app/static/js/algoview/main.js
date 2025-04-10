@@ -85,7 +85,7 @@ class AlgoViewConfiguration {
     }
 
     configuringThreeJS() {
-        this.container = document.getElementById("algoviewContainer");
+        this.container = document.getElementById("algoview_container");
         this.scene = new THREE.Scene();
 
         this.camera = this.createCamera();
@@ -273,7 +273,8 @@ class AlgoViewConfiguration {
 
         const changeFPSInfoBlock = function () {
             if (thisContextTrans.params.showSystemLoadInfo == false) {
-                InfoBlockController.changeFPSInfoBlock("", "");
+                InfoBlockController.setPageInfoBlock(2, "");
+                InfoBlockController.setPageInfoBlock(3, "");
             }
         };
 
@@ -459,13 +460,19 @@ class Vertex {
      * @param {Number} x
      * @param {Number} y
      * @param {Number} z
+     * @param {Number} x_scaled
+     * @param {Number} y_scaled
+     * @param {Number} z_scaled
      * @param {string} type
      * @param {string} info
      * @param {Number} level
      */
-    constructor(id, x, y, z, type, info, level) {
+    constructor(id, x, y, z, x_scaled, y_scaled, z_scaled, type, info, level) {
         this.id = id;
-        this.pos = new THREE.Vector3(x, y, z);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.pos = new THREE.Vector3(x_scaled, y_scaled, z_scaled);
         this.type = type;
         this.info = info;
         this.level = level;
@@ -545,6 +552,9 @@ class Graph {
 
             const vertex = new Vertex(
                 element.id,
+                element.coordinates[0],
+                element.coordinates[1],
+                element.coordinates[2],
                 Graph.coordinateTransform(
                     element.coordinates[0],
                     isVertexExcepted
@@ -737,6 +747,23 @@ class Graph {
         });
 
         return sizeVector3;
+    }
+
+    /**
+     *
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} z  */
+    getVertexAtPosition(x, y, z) {
+        var findedVertex = undefined;
+
+        this.vertices.forEach((vertex, _, __) => {
+            if (vertex.x == x && vertex.y == y && vertex.z == z) {
+                findedVertex = vertex;
+            }
+        });
+
+        return findedVertex;
     }
 
     getGraphDepth() {
@@ -1566,11 +1593,11 @@ class View {
     }
 
     onMouseMove(event) {
-        // 123
+        // console.log("in onMouseMove func");
     }
 
     onDocumentMouseDown(event) {
-        console.log("in onDocumentMouseDown func");
+        // console.log("in onDocumentMouseDown func");
         event.preventDefault();
 
         // reference
@@ -1603,7 +1630,28 @@ class View {
                 Graph.coordinateReversedTransform(pos.z),
             ];
 
-            console.log(vertexCoords);
+            // console.log("Selected vertex coords:", vertexCoords);
+
+            // cringe solution
+            const vertexObj = app.model.graph.getVertexAtPosition(
+                vertexCoords[0],
+                vertexCoords[1],
+                vertexCoords[2]
+            );
+
+            console.log("Selected vertex:", vertexObj);
+
+            InfoBlockController.setPageInfoBlock(
+                1,
+
+                "<b><i>Selected vertex:</i></b>" +
+                    "<br>• coords: " +
+                    vertexCoords +
+                    "<br>• info: " +
+                    vertexObj.info
+            );
+        } else {
+            InfoBlockController.setPageInfoBlock(1, "");
         }
     }
 
@@ -1898,15 +1946,13 @@ class InfoBlockController {
             }
         }
 
-        document.getElementById("graphInfoBlock").innerHTML = content;
+        document.getElementById("graph_info_block").innerHTML = content;
     }
 
-    static changeFPSInfoBlock(text1, text2) {
-        const content1 = "<h4>" + text1 + "</h4>";
-        const content2 = "<h4>" + text2 + "</h4>";
+    static setPageInfoBlock(index, content) {
+        // const content_h4 = "<h4>" + content + "</h4>";
 
-        document.getElementById("fpsInfoBlock_1").innerHTML = content1;
-        document.getElementById("fpsInfoBlock_2").innerHTML = content2;
+        document.getElementById("info_block_" + index).innerHTML = content;
     }
 }
 
@@ -2078,8 +2124,9 @@ async function renderLoop() {
     fpsManager.addFpsValue(fps);
     fpsManager.addRenderTimeValue(renderTime);
     if (config.params.showSystemLoadInfo) {
-        InfoBlockController.changeFPSInfoBlock(
-            fpsManager.getFpsInfoStr(),
+        InfoBlockController.setPageInfoBlock(2, fpsManager.getFpsInfoStr());
+        InfoBlockController.setPageInfoBlock(
+            3,
             fpsManager.getRenderTimeInfoStr()
         );
     }

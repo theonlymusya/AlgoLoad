@@ -27,7 +27,7 @@ body {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-#algoviewContainer {
+#algoview_container {
     /* border: 2px solid red; */
     position: absolute;
     left: 0;
@@ -68,7 +68,7 @@ h1 {
     top: 20px;
 }
 
-#graphInfoBlock {
+#graph_info_block {
     /* border: 2px solid red; */
     /* position: absolute; */
     opacity: 1;
@@ -77,16 +77,24 @@ h1 {
     width: 400px;
 }
 
-#fpsInfoBlock_1 {
-    /* position: absolute; */
+#info_block_1 {
+    position: absolute;
+    opacity: 1;
+    left: 20px;
+    bottom: 20px;
+}
+
+#info_block_2 {
+    position: absolute;
+    text-align: end;
     opacity: 1;
     right: 20px;
     bottom: 42px;
 }
 
-#fpsInfoBlock_2 {
-    /* position: absolute; */
-    /* text-align: end; */
+#info_block_3 {
+    position: absolute;
+    text-align: end;
     opacity: 1;
     right: 20px;
     bottom: 20px;
