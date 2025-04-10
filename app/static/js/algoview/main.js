@@ -81,7 +81,7 @@ class AlgoViewConfiguration {
      */
     setControllerContext(controllerContext) {
         this.controllerContext = controllerContext;
-        // console.log("new controllerContext - ", this.controllerContext);
+        // print("new controllerContext - ", this.controllerContext);
     }
 
     configuringThreeJS() {
@@ -590,7 +590,7 @@ class Graph {
                 context.checkVertexForRequiredShift(vertex);
 
             if (isVertexNeedsShifting) {
-                console.log(
+                print(
                     '[tmp] Shift problem vertex with type = "0", id =',
                     vertex.id
                 );
@@ -723,12 +723,12 @@ class Graph {
         if (ky <= 0 || ky >= 1) return false;
         if (kz <= 0 || kz >= 1) return false;
 
-        // console.log("edge: ", sourceVertex.id, targetVertex.id);
-        // console.log("verifiableVertex: ", verifiableVertex.id);
-        // console.log("kx = ", kx);
-        // console.log("ky = ", ky);
-        // console.log("kz = ", kz);
-        // console.log("");
+        // print("edge: ", sourceVertex.id, targetVertex.id);
+        // print("verifiableVertex: ", verifiableVertex.id);
+        // print("kx = ", kx);
+        // print("ky = ", ky);
+        // print("kz = ", kz);
+        // print("");
 
         const isEqual = function (a, b) {
             return isNaN(a) || isNaN(b) || a - b < 1e-4;
@@ -817,7 +817,7 @@ class GraphInfo {
 
     fillInWarnings() {
         if (this.graphData.warnings == null) {
-            console.log("graphData.warnings is null");
+            print("graphData.warnings is null");
             return;
         }
 
@@ -833,7 +833,7 @@ class GraphInfo {
 
     fillInErrors() {
         if (this.graphData.errors == null) {
-            console.log("graphData.errors is null");
+            print("graphData.errors is null");
             return;
         }
 
@@ -1020,31 +1020,31 @@ class GraphicObjects {
 
         if (n1.x != 0 && n1.y == 0 && n1.z == 0) {
             // ось OX
-            // console.log("ось OX");
+            // print("ось OX");
             n2.set(0, -1, -1).normalize();
         } else if (n1.x == 0 && n1.y != 0 && n1.z == 0) {
             // ось OY
-            // console.log("ось OY");
+            // print("ось OY");
             n2.set(-1, 0, -1).normalize();
         } else if (n1.x == 0 && n1.y == 0 && n1.z != 0) {
             // ось OZ
-            // console.log("ось OZ");
+            // print("ось OZ");
             n2.set(-1, -1, 0).normalize();
         } else if (n1.x != 0 && n1.y != 0 && n1.z == 0) {
             // плоскость OXY
-            // console.log("плоскость OXY");
+            // print("плоскость OXY");
             n2.set(0, 0, -1);
         } else if (n1.x == 0 && n1.y != 0 && n1.z != 0) {
             // плоскость OYZ
-            // console.log("плоскость OYZ");
+            // print("плоскость OYZ");
             n2.set(-1, 0, 0);
         } else if (n1.x != 0 && n1.y == 0 && n1.z != 0) {
             // плоскость OXZ
-            // console.log("плоскость OXZ");
+            // print("плоскость OXZ");
             n2.set(0, -1, 0);
         } else {
             // Общий случай
-            // console.log("Общий случай");
+            // print("Общий случай");
 
             const n1x = Math.abs(n1.x);
             const n1y = Math.abs(n1.y);
@@ -1057,9 +1057,9 @@ class GraphicObjects {
             const n2x = b * Math.cos(gamma) * Math.sign(n1.x);
             const n2z = b * Math.sin(gamma) * Math.sign(n1.z);
 
-            // console.log("beta =", (beta * 180) / Math.PI);
-            // console.log("b =", b);
-            // console.log("gamma =", (gamma * 180) / Math.PI);
+            // print("beta =", (beta * 180) / Math.PI);
+            // print("b =", b);
+            // print("gamma =", (gamma * 180) / Math.PI);
 
             n2.set(-n2x, n1.y, -n2z).normalize();
         }
@@ -1067,10 +1067,10 @@ class GraphicObjects {
         // рассчитываем третий базисный вектор n3
         n3.copy(cross(n1, n2));
 
-        // console.log("n1:", n1.x, n1.y, n1.z);
-        // console.log("n2:", n2.x, n2.y, n2.z);
-        // console.log("n3:", n3.x, n3.y, n3.z);
-        // console.log("\n");
+        // print("n1:", n1.x, n1.y, n1.z);
+        // print("n2:", n2.x, n2.y, n2.z);
+        // print("n3:", n3.x, n3.y, n3.z);
+        // print("\n");
 
         const M = [
             [n1.x, n2.x, n3.x],
@@ -1593,11 +1593,11 @@ class View {
     }
 
     onMouseMove(event) {
-        // console.log("in onMouseMove func");
+        // print("in onMouseMove func");
     }
 
     onDocumentMouseDown(event) {
-        // console.log("in onDocumentMouseDown func");
+        // print("in onDocumentMouseDown func");
         event.preventDefault();
 
         // reference
@@ -1618,7 +1618,7 @@ class View {
         config.raycaster.setFromCamera(config.mouse, config.camera);
 
         const intersects = config.raycaster.intersectObjects(config.allObjects);
-        // console.log(intersects);
+        // print(intersects);
 
         if (intersects.length > 0) {
             const nearestVertexObject = intersects[0];
@@ -1630,7 +1630,7 @@ class View {
                 Graph.coordinateReversedTransform(pos.z),
             ];
 
-            // console.log("Selected vertex coords:", vertexCoords);
+            // print("Selected vertex coords:", vertexCoords);
 
             // cringe solution
             const vertexObj = app.model.graph.getVertexAtPosition(
@@ -1639,7 +1639,7 @@ class View {
                 vertexCoords[2]
             );
 
-            console.log("Selected vertex:", vertexObj);
+            print("Selected vertex:", vertexObj);
 
             InfoBlockController.setPageInfoBlock(
                 1,
@@ -1874,7 +1874,7 @@ class Controller {
         this.appManagerContext = appManagerContext;
         this.viewContext = viewContext;
 
-        // console.log("this.appManagerContext = ", this.appManagerContext);
+        // print("this.appManagerContext = ", this.appManagerContext);
     }
 
     rebuildScene() {
@@ -1882,14 +1882,14 @@ class Controller {
 
         config.clearScene();
         this.viewContext.rebuildScene();
-        console.log("done rebuild");
+        print("done rebuild");
     }
 
     setNewCamera() {
         if (!this.appManagerContext.isBuildDone()) return;
 
         config.updateCamera();
-        console.log("done update camera");
+        print("done update camera");
     }
 
     autoRotateGraph() {
@@ -1962,12 +1962,12 @@ class AppManager {
         this.buildStatus = "in build process";
         this.statusProxy = new Proxy(this.targetObj, {
             set: function (target, key, value) {
-                console.log(`${key} set to ${value}`);
+                print(`${key} set to ${value}`);
                 target[key] = value;
 
                 if (value == "done") {
                     // config.setupGUI();
-                    console.log("AppManager.statusProxy updated");
+                    print("AppManager.statusProxy updated");
                 }
 
                 return true;
@@ -2091,7 +2091,7 @@ function resizeRendererToDisplaySize() {
 
 async function renderLoop() {
     if (app.appManager.buildStatus != "done") {
-        console.log("Waiting for the application to finish building.");
+        print("Waiting for the application to finish building.");
         await sleep(200);
         requestAnimationFrame(renderLoop);
         return;
