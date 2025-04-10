@@ -67,6 +67,17 @@ def favicon():
     )
 
 
+@bluePrint.route("/.well-known/assetlinks.json")
+def assetlinks():
+    cur_abs_path = os.path.abspath(os.path.curdir)
+
+    return send_from_directory(
+        directory=cur_abs_path + "/app/static/.well-known",
+        filename="assetlinks.json",
+        mimetype="application/json",
+    )
+
+
 @bluePrint.route("/logs", methods=["GET"])
 def getAllLogs():
     cur_abs_path = os.path.abspath(os.path.curdir)

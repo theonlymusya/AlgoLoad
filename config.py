@@ -5,13 +5,22 @@ import os
 
 # Папка для хранения базы данных по умолчанию
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 # Почему-то не грузится dotenv
 # load_dotenv(os.path.join(basedir, '.env'))
 
 
 class Config(object):
     # Папка, в которой находится сборка фронтенда Flutter
-    FLUTTER_WEB_APP_FOLDER = os.path.join(os.path.dirname(basedir), "flutter-build-web")
+    FLUTTER_WEB_APP_FOLDER = None
+
+    try:
+        FLUTTER_WEB_APP_FOLDER = os.path.join(
+            os.path.dirname(basedir), "flutter-build-web"
+        )
+    except OSError as e:
+        print(f"OSError with FLUTTER_WEB_APP_FOLDER: {str(e)}")
+
     print(f"FLUTTER_WEB_APP_FOLDER = {FLUTTER_WEB_APP_FOLDER}")
 
     FLUTTER_APP_BASE_URL_DEV = "http://localhost:63369"
