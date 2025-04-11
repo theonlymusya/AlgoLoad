@@ -182,6 +182,7 @@ class AlgoViewConfiguration {
             this.cameraTypeController.setValue(true);
         }
 
+        this.resetGraphRotationY();
         this.controllerContext.setNewCamera();
     }
 
@@ -229,6 +230,13 @@ class AlgoViewConfiguration {
         this.graphObjectContainer.rotation.y = this.graphRotationY;
     }
 
+    resetGraphRotationY() {
+        if (this.graphRotationY == 0) return;
+
+        this.graphRotationY = 0;
+        this.updateGraphRotationY();
+    }
+
     rotateGraphByClock() {
         this.graphRotationY += 0.25 * this.clock.getDelta();
         this.updateGraphRotationY();
@@ -240,9 +248,9 @@ class AlgoViewConfiguration {
 
         this.gui = new dat.GUI();
         const folderViewSettins = this.gui.addFolder("❖ View Settins");
-        const folderCameraControls = this.gui.addFolder("❖ Camera Controls");
+        const folderCameraControls = this.gui.addFolder("❖ Projections");
         const folderLevelControls = this.gui.addFolder("❖ Parallel Form");
-        const folderSceneControls = this.gui.addFolder("❖ Scene Controls");
+        // const folderSceneControls = this.gui.addFolder("❖ Scene Controls");
 
         // folderViewSettins.open();
         folderCameraControls.open();
@@ -374,6 +382,13 @@ class AlgoViewConfiguration {
             .name("Show FPS")
             .onChange(changeFPSInfoBlock);
 
+        folderViewSettins
+            .add(this.params, "autoRotate")
+            .name("Auto rotate")
+            .onChange(function () {
+                config.clock.getDelta();
+            });
+
         /**     ===================
          *        Camera Controls
          *      ===================
@@ -382,7 +397,7 @@ class AlgoViewConfiguration {
         // Сохраняем ссылку на контроллер чекбокса типа камеры
         this.cameraTypeController = folderCameraControls
             .add(this.params, "isOrthographicCamera")
-            .name("Orthographic camera")
+            .name("Orthographic view")
             .onChange(resetCameraCallback);
 
         folderCameraControls.add(this, "setXYView").name("Set XY view");
@@ -394,18 +409,11 @@ class AlgoViewConfiguration {
          *      ==================
          */
 
-        folderSceneControls
-            .add(this.params, "autoRotate")
-            .name("Auto rotate")
-            .onChange(function () {
-                config.clock.getDelta();
-            });
+        // folderSceneControls.add(this.params, "pause").name("Stop rendering");
 
-        folderSceneControls.add(this.params, "pause").name("Stop rendering");
-
-        folderSceneControls
-            .add(this.controllerContext, "rebuildScene")
-            .name("Rebuild"); // .onChange(rebuildSceneCallback);
+        // folderSceneControls
+        //     .add(this.controllerContext, "rebuildScene")
+        //     .name("Rebuild"); // .onChange(rebuildSceneCallback);
 
         /**     ==================
          *     Tiered-Parallel Form
@@ -414,12 +422,12 @@ class AlgoViewConfiguration {
 
         const showLevelController = folderLevelControls
             .add(this.params, "showLevel")
-            .name("Show levels")
+            .name("Paint levels")
             .onChange(rebuildSceneCallback);
 
         folderLevelControls
             .add(this.params, "paintIO")
-            .name("Paint I/O")
+            .name("Paint I/O vertices")
             .onChange(rebuildSceneCallback);
 
         const levelCounter = folderLevelControls
@@ -427,8 +435,13 @@ class AlgoViewConfiguration {
             .name("Level")
             .onChange(updateLevelValue);
 
-        folderLevelControls.add(levelControllerObj, "levelInc").name("Level +");
-        folderLevelControls.add(levelControllerObj, "levelDec").name("Level -");
+        folderLevelControls
+            .add(levelControllerObj, "levelInc")
+            .name("Inc level");
+
+        folderLevelControls
+            .add(levelControllerObj, "levelDec")
+            .name("Dec level");
     }
 
     /** Обработка изменения размера экрана */
