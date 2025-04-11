@@ -422,26 +422,33 @@ class AlgoViewConfiguration {
 
     /** Обработка изменения размера экрана */
     onWindowResize() {
-        if ((this.params.cameraType = CameraTypes.perspective)) return;
-
         const w = this.container.clientWidth;
         const h = this.container.clientHeight;
-        const aspect = w / h;
 
-        this.camera.left = (-this.frustumSize * aspect) / 2;
-        this.camera.right = (this.frustumSize * aspect) / 2;
-        this.camera.bottom = -this.frustumSize / 2;
-        this.camera.top = this.frustumSize / 2;
-
-        this.camera.updateProjectionMatrix();
+        // Обновляем размер рендерера для всех типов камер
         this.renderer.setSize(w, h);
         this.resolution.set(w, h);
+
+        // Обновляем параметры камеры в зависимости от её типа
+        if (this.params.cameraType == CameraTypes.perspective) {
+            // Для перспективной камеры обновляем соотношение сторон
+            this.camera.aspect = w / h;
+        } else {
+            // Для ортографической камеры обновляем границы видимости
+            const aspect = w / h;
+            this.camera.left = (-this.frustumSize * aspect) / 2;
+            this.camera.right = (this.frustumSize * aspect) / 2;
+            this.camera.bottom = -this.frustumSize / 2;
+            this.camera.top = this.frustumSize / 2;
+        }
+
+        // Обновляем проекционную матрицу камеры
+        this.camera.updateProjectionMatrix();
     }
 
     initEventListeners() {
-        // window.addEventListener("load", this.setupGUI());
-        // window.addEventListener("resize", this.onWindowResize());
-        // window.addEventListener("resize", onWindowResize, false);
+        // Используем bind для сохранения контекста this при вызове обработчика
+        window.addEventListener("resize", this.onWindowResize.bind(this));
     }
 
     clearScene() {
