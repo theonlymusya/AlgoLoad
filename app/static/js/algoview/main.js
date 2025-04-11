@@ -68,6 +68,10 @@ class Params {
 }
 
 class AlgoViewConfiguration {
+    // Константы для ограничения расстояния камеры
+    static MIN_SCALING_DISTANCE = 50; // минимальное расстояние для приближения
+    static MAX_SCALING_DISTANCE = 350; // максимальное расстояние для отдаления
+
     constructor() {
         this.params = new Params();
         this.configuringThreeJS();
@@ -111,6 +115,10 @@ class AlgoViewConfiguration {
             this.camera,
             this.renderer.domElement
         );
+
+        // Ограничение минимального и максимального расстояния камеры
+        this.controls.minDistance = AlgoViewConfiguration.MIN_SCALING_DISTANCE; // минимальное расстояние для приближения
+        this.controls.maxDistance = AlgoViewConfiguration.MAX_SCALING_DISTANCE; // максимальное расстояние для отдаления
         this.clock = new THREE.Clock();
 
         this.resolution = new THREE.Vector2(
@@ -192,6 +200,19 @@ class AlgoViewConfiguration {
             this.camera,
             this.renderer.domElement
         );
+
+        // Применяем ограничения масштабирования в зависимости от типа камеры
+        if (this.params.cameraType === CameraTypes.perspective) {
+            // Для перспективной камеры используем minDistance и maxDistance
+            this.controls.minDistance =
+                AlgoViewConfiguration.MIN_SCALING_DISTANCE; // минимальное расстояние для приближения
+            this.controls.maxDistance =
+                AlgoViewConfiguration.MAX_SCALING_DISTANCE; // максимальное расстояние для отдаления
+        } else {
+            // Для ортографической камеры используем minZoom и maxZoom
+            this.controls.minZoom = 0.15; // ограничение максимального приближения
+            this.controls.maxZoom = 2.0; // ограничение максимального отдаления
+        }
     }
 
     updateGraphRotationY() {
