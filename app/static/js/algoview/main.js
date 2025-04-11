@@ -155,39 +155,28 @@ class AlgoViewConfiguration {
         }
     }
 
-    setYZView_old() {
-        // https://threejs.org/docs/#api/en/cameras/PerspectiveCamera
-        // const w = 1920;
-        // const h = 1080;
-        // const fullWidth = w * 3;
-        // const fullHeight = h * 2;
-        // // A
-        // camera.setViewOffset(fullWidth, fullHeight, w * 0, h * 0, w, h);
-        // // B
-        // camera.setViewOffset(fullWidth, fullHeight, w * 1, h * 0, w, h);
-        // // C
-        // camera.setViewOffset(fullWidth, fullHeight, w * 2, h * 0, w, h);
-        // // D
-        // camera.setViewOffset(fullWidth, fullHeight, w * 0, h * 1, w, h);
-        // // E
-        // camera.setViewOffset(fullWidth, fullHeight, w * 1, h * 1, w, h);
-        // // F
-        // camera.setViewOffset(fullWidth, fullHeight, w * 2, h * 1, w, h);
-    }
-
     setXYView() {
         this.camera.position.set(0, 0, 100);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        this.params.isOrthographicCamera = true;
+        this.controllerContext.setNewCamera();
     }
 
     setXZView() {
         this.camera.position.set(0, 100, 0);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        this.params.isOrthographicCamera = true;
+        this.controllerContext.setNewCamera();
     }
 
     setYZView() {
         this.camera.position.set(100, 0, 0);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        this.params.isOrthographicCamera = true;
+        this.controllerContext.setNewCamera();
     }
 
     updateCamera() {
@@ -327,7 +316,7 @@ class AlgoViewConfiguration {
          *      ================
          */
 
-        folderViewSettins.add(this.params, "fpsRate", 24, 100).name("FPS rate");
+        folderViewSettins.add(this.params, "fpsRate", 30, 99).name("FPS rate");
 
         folderViewSettins
             .add(this.params, "lineWidth", 1, 6)

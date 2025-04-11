@@ -127,16 +127,17 @@ def create_app(config_class=Config()):
     if not os.path.exists("logs"):
         os.mkdir("logs")
 
-    # Заводим новый лог-файл
+    # Заводим новый лог-файл с автоматической ротацией
     file_handler = RotatingFileHandler(
         "logs/microbial.log",
-        maxBytes=500000,
-        backupCount=20,
+        maxBytes=100000,  # максимальный размер до 100KB
+        backupCount=50,  # количество резервных копий
+        delay=False,  # Немедленно открывать файл
     )
 
     file_handler.setFormatter(
         logging.Formatter(
-            "[%(asctime)s  ] [Flask] [%(levelname)s] "
+            "[%(asctime)s] [Flask] [%(levelname)s] "
             "%(message)s [int %(pathname)s:%(lineno)d]"
         )
     )
