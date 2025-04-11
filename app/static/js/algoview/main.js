@@ -76,6 +76,8 @@ class AlgoViewConfiguration {
         this.params = new Params();
         this.configuringThreeJS();
         this.initEventListeners();
+
+        this.cameraTypeController = null; // Контроллер для чекбокса типа камеры
     }
 
     /**
@@ -163,28 +165,36 @@ class AlgoViewConfiguration {
         }
     }
 
-    setXYView() {
-        this.camera.position.set(0, 0, 100);
+    /**
+     * Вспомогательный метод для установки вида камеры для проекций
+     * @param {Number} x - координата X позиции камеры
+     * @param {Number} y - координата Y позиции камеры
+     * @param {Number} z - координата Z позиции камеры
+     */
+    setOrthographicProjectionCameraView(x, y, z) {
+        this.camera.position.set(x, y, z);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         this.params.isOrthographicCamera = true;
+
+        // Обновляем состояние контроллера чекбокса
+        if (this.cameraTypeController) {
+            this.cameraTypeController.setValue(true);
+        }
+
         this.controllerContext.setNewCamera();
+    }
+
+    setXYView() {
+        this.setOrthographicProjectionCameraView(0, 0, 100);
     }
 
     setXZView() {
-        this.camera.position.set(0, 100, 0);
-        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-        this.params.isOrthographicCamera = true;
-        this.controllerContext.setNewCamera();
+        this.setOrthographicProjectionCameraView(0, 100, 0);
     }
 
     setYZView() {
-        this.camera.position.set(100, 0, 0);
-        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-        this.params.isOrthographicCamera = true;
-        this.controllerContext.setNewCamera();
+        this.setOrthographicProjectionCameraView(100, 0, 0);
     }
 
     updateCamera() {
@@ -369,7 +379,8 @@ class AlgoViewConfiguration {
          *      ===================
          */
 
-        folderCameraControls
+        // Сохраняем ссылку на контроллер чекбокса типа камеры
+        this.cameraTypeController = folderCameraControls
             .add(this.params, "isOrthographicCamera")
             .name("Orthographic camera")
             .onChange(resetCameraCallback);
