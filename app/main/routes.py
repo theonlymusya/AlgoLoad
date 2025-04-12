@@ -299,12 +299,14 @@ def edit_profile():
     return render_template("edit_profile.html", title="Изменить данные", form=form)
 
 
+# todo: remove method
 # @bluePrint.route('/admin', methods=['GET', 'POST'])
 # @login_required
 # def admin():
 #     return render_template('admin.html', title='Администрирование')
 
 
+# todo: remove method
 @bluePrint.route("/upload_task_old", methods=["GET", "POST"])
 @login_required
 def upload_task_old():

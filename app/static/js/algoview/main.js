@@ -619,7 +619,7 @@ class Graph {
 
     /**
      * tmp solution
-     * TODO: убрать эту функцию
+     * todo: убрать эту функцию
      */
     shiftProblemVertices() {
         const context = this;
@@ -700,7 +700,7 @@ class Graph {
             );
 
             // tmp solution
-            // TODO: получать уроверь ребра из json
+            // todo: получать уроверь ребра из json
 
             const edge = new Edge(
                 element.id,
@@ -844,7 +844,7 @@ class GraphInfo {
         //      critical_path_length
         //      parallel_form_width
 
-        // TODO: add graph_depth
+        // todo: add graph_depth
 
         for (const property in this.graphData.characteristics) {
             const value = this.graphData.characteristics[property];
@@ -1592,7 +1592,7 @@ class Model {
         this.graphInfo = new GraphInfo(this.graphData);
 
         // tmp solution
-        // TODO: получать глубину графа из json
+        // todo: получать глубину графа из json
         this.graphInfo.characteristics.graph_depth = this.graph.getGraphDepth();
     }
 }
@@ -1661,6 +1661,8 @@ class View {
         const intersects = config.raycaster.intersectObjects(config.allObjects);
         // print(intersects);
 
+        var SelectedVertexObj = undefined;
+
         if (intersects.length > 0) {
             const nearestVertexObject = intersects[0];
             const pos = nearestVertexObject.object.position;
@@ -1674,22 +1676,30 @@ class View {
             // print("Selected vertex coords:", vertexCoords);
 
             // cringe solution
-            const vertexObj = app.model.graph.getVertexAtPosition(
+            SelectedVertexObj = app.model.graph.getVertexAtPosition(
                 vertexCoords[0],
                 vertexCoords[1],
                 vertexCoords[2]
             );
 
-            print("Selected vertex:", vertexObj);
+            print(
+                "Selected vertex, [" + String(vertexCoords) + "]: ",
+                SelectedVertexObj
+            );
+        }
 
+        if (SelectedVertexObj != undefined) {
             InfoBlockController.setPageInfoBlock(
                 1,
-
                 "<b><i>Selected vertex:</i></b>" +
-                    "<br>• coords: " +
-                    vertexCoords +
-                    "<br>• info: " +
-                    vertexObj.info
+                    "<br>• coords: [" +
+                    SelectedVertexObj.x +
+                    ", " +
+                    SelectedVertexObj.y +
+                    ", " +
+                    SelectedVertexObj.z +
+                    "]<br>• info: " +
+                    SelectedVertexObj.info
             );
         } else {
             InfoBlockController.setPageInfoBlock(1, "");

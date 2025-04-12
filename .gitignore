@@ -6,6 +6,7 @@ architect/extra_files
 architect/rapidxml-1.13
 architect/output.json
 architect/main
+architect_2.1/main
 
 # logs
 *.log.*

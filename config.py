@@ -23,7 +23,7 @@ class Config(object):
 
     print(f"FLUTTER_WEB_APP_FOLDER = {FLUTTER_WEB_APP_FOLDER}")
 
-    FLUTTER_APP_BASE_URL_DEV = "http://localhost:63369"
+    FLUTTER_APP_BASE_URL_DEV = "http://localhost:55756"
     FLUTTER_APP_BASE_URL_STAGING = "http://45.153.231.45:8080"
     FLUTTER_APP_BASE_URL_PROD = "http://localhost:54026"  # todo: replace
 
