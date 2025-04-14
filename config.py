@@ -22,7 +22,7 @@ class Config(object):
     except OSError as e:
         print(f"OSError with FLUTTER_WEB_APP_FOLDER: {str(e)}")
 
-    FLUTTER_APP_BASE_URL_DEV = "http://localhost:55756"
+    FLUTTER_APP_BASE_URL_DEV = "http://localhost:61850"
     FLUTTER_APP_BASE_URL_STAGING = "http://45.153.231.45:8080"
     FLUTTER_APP_BASE_URL_PROD = "http://localhost:54026"  # todo: replace
 

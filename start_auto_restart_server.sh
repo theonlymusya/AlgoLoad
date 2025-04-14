@@ -21,7 +21,7 @@ while true; do
     sh ./restart_server.sh
     log "Перезапуск сервера выполнен"
     
-    # Ждем 20 минут
-    sleep 1200
+    # Ждем 10 минут
+    sleep 600
 done
 
