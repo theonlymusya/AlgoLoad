@@ -18,10 +18,9 @@ class Config(object):
         FLUTTER_WEB_APP_FOLDER = os.path.join(
             os.path.dirname(basedir), "flutter-build-web"
         )
+        print(f"FLUTTER_WEB_APP_FOLDER = {FLUTTER_WEB_APP_FOLDER}")
     except OSError as e:
         print(f"OSError with FLUTTER_WEB_APP_FOLDER: {str(e)}")
-
-    print(f"FLUTTER_WEB_APP_FOLDER = {FLUTTER_WEB_APP_FOLDER}")
 
     FLUTTER_APP_BASE_URL_DEV = "http://localhost:55756"
     FLUTTER_APP_BASE_URL_STAGING = "http://45.153.231.45:8080"

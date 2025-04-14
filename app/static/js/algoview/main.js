@@ -2143,7 +2143,7 @@ function resizeRendererToDisplaySize() {
 async function renderLoop() {
     if (app.appManager.buildStatus != "done") {
         print("Waiting for the application to finish building.");
-        await sleep(10);
+        await sleep(50);
         requestAnimationFrame(renderLoop);
         return;
     }
