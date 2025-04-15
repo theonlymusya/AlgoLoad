@@ -146,7 +146,8 @@ def create_app(config_class=Config()):
 
     # Настраиваем приложение на его использование
 
-    # app_flask.logger.addHandler(file_handler) # временно отрубаем логирование фласка в общий файл с логами
+    app_flask.logger.addHandler(file_handler)
+    # временно отрубаем логирование фласка в общий файл с логами
     app_flask.logger.setLevel(logging.INFO)
     app_flask.logger.info("Microbial startup")
 

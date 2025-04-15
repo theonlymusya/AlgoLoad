@@ -11,7 +11,7 @@ mkdir -p $LOG_FOLDER
 touch $LOG_FILE
 
 # launch web server
-# exec gunicorn -b 0.0.0.0:3001 --timeout 300 --access-logfile $LOG_FILE --error-logfile $LOG_FILE flask_skipod:appFlask
+exec gunicorn -b 0.0.0.0:3001 --timeout 300 --access-logfile $LOG_FILE --error-logfile $LOG_FILE flask_skipod:appFlask
 
 # launch web server without logs (tmp)
-exec gunicorn -b 0.0.0.0:3001 --timeout 300 flask_skipod:appFlask
+# exec gunicorn -b 0.0.0.0:3001 --timeout 300 flask_skipod:appFlask
