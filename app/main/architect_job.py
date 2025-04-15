@@ -62,15 +62,16 @@ class ArchitectJob:
             try:
                 os.remove(os.path.join(volume_user_page_models_dir, "graphData.json"))
             except OSError:
-                pass
+                passcat
 
             # Обрабатываем входной файл конфигурации графа в зависимости от его типа
+            graph_input_config_type = os.path.splitext(graph_input_config_file)[1][1:]
+            debug_print(f">>>>>>> graph_config_type = '{graph_input_config_type}'")
 
-            if graph_input_config_file.endswith(".json"):
-                debug_print(f">>>>>>> Загрузили .json")
+            if graph_input_config_type == "json":
                 shutil.copy(graph_input_config_file, graph_output_config_file)
 
-            else:
+            elif graph_input_config_type == "xml":
                 architect_script_file = cur_abs_path + "/architect/main"
                 command = [
                     architect_script_file,
@@ -79,6 +80,14 @@ class ArchitectJob:
                 ]
 
                 self._execute_architect(command)
+
+            elif graph_input_config_type == "cpp":
+                # todo:
+                shutil.copy(graph_input_config_file, graph_output_config_file)  # tmp
+
+            else:
+                # todo:
+                shutil.copy(graph_input_config_file, graph_output_config_file)  # tmp
 
             # сохранение таска в бд
             debug_print(f">>>>>>> Cохранение таска в бд {graph_name}")

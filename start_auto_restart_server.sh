@@ -24,4 +24,3 @@ while true; do
     # Ждем 10 минут
     sleep 600
 done
-
