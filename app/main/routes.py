@@ -306,91 +306,6 @@ def edit_profile():
 #     return render_template('admin.html', title='Администрирование')
 
 
-# todo: remove method
-@bluePrint.route("/upload_task_old", methods=["GET", "POST"])
-@login_required
-def upload_task_old():
-    form = TaskSubmitForm()
-    # Сохраняем изменения на странице
-    if form.validate_on_submit():
-        # Определим вспомогательные переменные
-        cur_abs_path = os.path.abspath(os.path.curdir)
-        local_volume_user_dir = "/volume/userdata/" + current_user.local_folder
-        volume_user_task_dir = cur_abs_path + local_volume_user_dir + "/task"
-        volume_user_page_dir = cur_abs_path + local_volume_user_dir + "/page"
-        volume_user_page_models_dir = volume_user_page_dir + "/Json_models"
-
-        # Нужно создать ещё и локальную директорию для отображения результатов
-        if not os.path.exists(volume_user_page_dir):
-            os.makedirs(
-                volume_user_page_models_dir,
-                mode=0x777,
-                exist_ok=True,
-            )
-
-        # Нужно записать в эту директорию загнанные данные и запустить архитектора.
-        if os.path.exists(volume_user_task_dir):
-            # Запись комментария юзера
-            fd = os.open(
-                volume_user_task_dir + "/Task_code.txt",
-                os.O_RDWR | os.O_CREAT,
-            )
-            os.write(fd, bytes(form.task_code.data, "utf-8"))
-            os.close(fd)
-
-            # (???) В сети предлагают чекать имя файла через werkzeug,
-            # чего я сделать не могу из-за отсутствия в werkzeug этой функции
-            # https://tedboy.github.io/flask/generated/generated/werkzeug.FileStorage.html
-            file = form.file_data.data
-            graph_name = file.filename
-
-            # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
-            graph_input_config_file = volume_user_task_dir + "/" + graph_name
-            graph_output_config_file = volume_user_page_models_dir + "/graphData.json"
-            graph_input_config_last_file = volume_user_task_dir + "/last_input_config"
-
-            # Запись разметки, загруженной юзером
-            debug_print(f">>>>>>> file = {file}")
-            debug_print(f">>>>>>> graph_config_file = {graph_input_config_file}")
-            file.save(graph_input_config_file)
-
-            # для удобства дуюлируем файл
-            shutil.copy(graph_input_config_file, graph_input_config_last_file)
-
-            # Нужно снести все старые данные графа
-            try:
-                os.remove(os.path.join(volume_user_page_models_dir, "graphData.json"))
-            except OSError:
-                pass
-
-            if graph_input_config_file.endswith(".json"):
-                debug_print(f">>>>>>> Загрузили .json")
-                shutil.copy(graph_input_config_file, graph_output_config_file)
-
-            else:
-                architect_script_file = cur_abs_path + "/architect/main"
-                os_command_new_cpp = f"{architect_script_file} {graph_input_config_file} {graph_output_config_file}"
-
-                debug_print(f">>>>>>> OS run {os_command_new_cpp}")
-                os.system(os_command_new_cpp)
-
-            # сохранение таска в бд
-            debug_print(f">>>>>>> Cохранение таска в бд {graph_name}")
-            current_user.task_file = graph_name
-            dataBase.session.commit()
-
-        debug_print(f">>>>>>> upload_task finish")
-
-        # Всё необходимое создано, возвращаемся на страницу пользователя
-        user = User.query.filter_by(username=current_user.username).first_or_404()
-
-        return render_template(
-            "user.html", title="Моя страница", user=user, graph_name=graph_name
-        )
-
-    return render_template("upload_task.html", title="Загрузка задания", form=form)
-
-
 @bluePrint.route("/upload_task", methods=["GET", "POST"])
 @login_required
 def upload_task():
@@ -450,3 +365,10 @@ def receive_task():
 def receive_task_app():
     responce = ReceiveTaskResponce()
     return responce.to_json(), 200
+
+
+@bluePrint.route("/api/username", methods=["GET"])
+@login_required
+def api_get_username():
+    username = current_user.username
+    return jsonify({"result": username}), 200
