@@ -1,0 +1,29 @@
+<algo>
+    <params>
+        <param name="n" type="int" value="5"></param>
+    </params>
+
+    <block id="0" dims="1">
+        <arg name="i" val="0..n-1"></arg>
+
+        <block id="0" dims="0">
+            <vertex condition="" type="2"></vertex>
+        </block>
+
+        <block id="1" dims="1">
+            <arg name="j" val="i+1..n-1"></arg>
+            <vertex condition="" type="2">
+                <in bsrc="0::0" src="i"></in>
+            </vertex>
+        </block>
+
+        <block id="2" dims="2">
+            <arg name="k" val="i+1..n-1"></arg>
+            <arg name="j" val="k..n-1"></arg>
+            <vertex condition="" type="2">
+                <in bsrc="0::1" src="i,k"></in>
+                <in bsrc="0::1" src="i,j"></in>
+            </vertex>
+        </block>
+    </block>
+</algo>
