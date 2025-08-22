@@ -1,0 +1,27 @@
+<algo>
+    <block dims="2">
+        <arg name="i" val="1..3"></arg>
+        <arg name="j" val="0..7"></arg>
+        <vertex condition="i == 1 and j == 0" type="1">
+        </vertex>
+        <vertex condition="i == 1 and j == 1" type="1">
+        </vertex>
+        <vertex condition="i == 1 and j == 2" type="1">
+        </vertex>
+        <vertex condition="i == 1 and j == 3" type="1">
+        </vertex>
+        <vertex condition="i == 2 and j == 0" type="1">
+            <in src = "1, 0"></in>
+            <in src = "1, 1"></in>
+        </vertex>
+        <vertex condition="i == 2 and j == 1" type="1">
+            <in src = "1, 2"></in>
+            <in src = "1, 3"></in>
+        </vertex>
+        <vertex condition="i == 3 and j == 0" type="1">
+            <in src = "2, 0"></in>
+            <in src = "2, 1"></in>
+        </vertex>
+    </block>
+</algo>
+

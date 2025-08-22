@@ -1,0 +1,185 @@
+УМНОЖЕНИЕ МАТРИЦЫ НА ВЕКТОР
+
+for(int i = 0; i < size; i++)
+    for(int j = 0; j < size ; j++)
+        vec_out[i] += matrix[i][j] * vec_in[j];
+
+ПЕРЕМНОЖЕНИЕ МАТРИЦ
+
+for ( int i=0; i<size_1_str;i++)
+    for (int j=0; j<size_2_col;j++) {
+        matrix_out[i][j]=0;
+        for(int k=0; k<size_common;k++)
+        matrix_out[i][j]+=matrix_1[i][k]*matrix_2[k][j];
+}
+
+НАХОЖДЕНИЕ СУММЫ ЭЛЕМЕНТОВ МАССИВА СДВАИВАНИЕМ 
+
+for(int i=1;i<=h;i++)
+    for(int j=0;j<arr_size;j++)
+        if(j<(arr_size/(pow(2,i))))
+            arr[j]=arr[j*2]+arr[2*j+1];
+
+ПОСЛЕДОВАТЕЛЬНО-ПАРАЛЛЕЛЬНЫЙ МЕТОД СУММИРОВАНИЯ
+
+на фортране
+
+double X[];
+double S[P];
+double SUM;
+
+for (int i = 0; i < P; i++) {
+    S[i] = X[K * i];
+
+    if (i < P - 1) {
+        for (int j = 1; j < K; j++) {
+            S[i] += X[K * i + j];
+        }
+    } else {
+        for (int j = 1; j < Q; j++) {
+            S[i] += X[K * i + j];
+        }
+    }
+}
+
+SUM = S[0];
+for (int i = 1; i < P; i++) {
+    SUM += S[i];
+}
+
+КОМПАКТНАЯ СХЕМА МЕТОДА ГАУССА ДЛЯ ТРЁХДИАГОНАЛЬНОЙ МАТРИЦЫ
+
+МЕТОД ГИВЕНСА (ВРАЩЕНИЙ) QR-РАЗЛОЖЕНИЯ КВАДРАТНОЙ МАТРИЦЫ
+
+int N = 3;
+double A[3][3] = {
+    {4.0,  1.0, -2.0},
+    {1.0,  2.0,  0.0},
+    {-2.0, 0.0,  3.0}
+};
+
+int i, j, k;
+double r, c, s, temp;
+
+// Алгоритм Гивенса: преобразование матрицы в верхнетреугольный вид
+    for (i = 0; i < N - 1; i++) {
+        for (j = i + 1; j < N; j++) {
+            // Вычисление параметров поворота
+            r = sqrt(A[i][i] * A[i][i] + A[j][i] * A[j][i]);
+            if (r == 0.0) {
+                c = 1.0;
+                s = 0.0;
+            } else {
+                c = A[i][i] / r;
+                s = -A[j][i] / r;
+            }
+            // Применение поворота к элементам строк i и j для столбцов от i+1 до N-1
+            for (k = i + 1; k < N; k++) {
+                temp = A[i][k];
+                A[i][k] = c * temp - s * A[j][k];
+                A[j][k] = s * temp + c * A[j][k];
+            }
+            // После поворота элемент A[j][i] становится нулевым (аннулируется)
+            A[j][i] = 0.0;
+        }
+    }
+
+ПРОСТОЙ АЛГОРИТМ КУЛИ-ТЬЮКИ БЫСТРОГО ПРЕОБРАЗОВАНИЯ ФУРЬЕ ДЛЯ СТЕПЕНЕЙ ДВОЙКИ
+
+МЕТОД ПРОГОНКИ
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define N 3  // Размерность системы
+
+void gaussianElimination(double a[N][N+1]) {
+    for (int i = 0; i < N; i++) {
+        // Выбор главного элемента
+        for (int k = i + 1; k < N; k++) {
+            double factor = a[k][i] / a[i][i];
+            for (int j = i; j <= N; j++) {
+                a[k][j] -= factor * a[i][j];
+            }
+        }
+    }
+
+    // Обратный ход
+    double x[N];
+    for (int i = N - 1; i >= 0; i--) {
+        x[i] = a[i][N] / a[i][i];
+        for (int j = i + 1; j < N; j++) {
+            x[i] -= a[i][j] * x[j] / a[i][i];
+        }
+    }
+
+    // Вывод решений
+    for (int i = 0; i < N; i++) {
+        printf("x[%d] = %lf\n", i, x[i]);
+    }
+}
+
+int main() {
+    double a[N][N+1] = {
+        {3, -0.1, -0.2, 7.85},
+        {0.1, 7, -0.3, -19.3},
+        {0.3, -0.2, 10, 71.4}
+    };
+
+    gaussianElimination(a);
+    return 0;
+}
+
+МЕТОД ЯКОБИ
+#include <stdio.h>
+#include <math.h>
+
+#define N 3  // Размерность системы
+#define EPS 1e-6  // Точность
+
+void jacobiMethod(double A[N][N], double B[N], double X[N]) {
+    double X_old[N], diff;
+    int i, j, iter = 0;
+
+    for (i = 0; i < N; i++) X[i] = 0;  // Начальное приближение
+
+    do {
+        for (i = 0; i < N; i++)
+            X_old[i] = X[i];
+
+        for (i = 0; i < N; i++) {
+            double sum = B[i];
+            for (j = 0; j < N; j++) {
+                if (i != j) 
+                    sum -= A[i][j] * X_old[j];
+            }
+            X[i] = sum / A[i][i];
+        }
+
+        diff = 0;
+        for (i = 0; i < N; i++) {
+            if (fabs(X[i] - X_old[i]) > diff)
+                diff = fabs(X[i] - X_old[i]);
+        }
+
+        iter++;
+    } while (diff > EPS);
+
+    printf("Решение найдено за %d итераций:\n", iter);
+    for (i = 0; i < N; i++) {
+        printf("x[%d] = %lf\n", i, X[i]);
+    }
+}
+
+int main() {
+    double A[N][N] = {
+        {10, -1, 2},
+        {-1, 11, -1},
+        {2, -1, 10}
+    };
+    double B[N] = {6, 25, -11};
+    double X[N];
+
+    jacobiMethod(A, B, X);
+    return 0;
+}

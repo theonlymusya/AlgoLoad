@@ -1,0 +1,143 @@
+<algo>
+  <block id = "0" dims = "1">
+    <arg name = "i" val = "0..0"></arg>
+    <vertex condition = "i == 0" type = "0"></vertex>
+  </block>
+  <block id = "1" dims = "1">
+    <arg name = "i" val = "0..0"></arg>
+    <vertex condition = "i == 0" type = "0"></vertex>
+  </block>
+  <block id = "2" dims = "1">
+    <arg name = "i" val = "0..10"></arg>
+    <block id = "3" dims = "1">
+      <arg name = "j" val = "0..4"></arg>
+      <vertex condition = "i == 0 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 0 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 0 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 0 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 1 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 1 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 1 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 1 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 2 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 2 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 2 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 2 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 3 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 3 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 3 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 3 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 4 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 4 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 4 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 4 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 5 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 5 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 5 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 5 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 6 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 6 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 6 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 6 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 7 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 7 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 7 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 7 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 8 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 8 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 8 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 8 and j == 3" type = "0"></vertex>
+      <vertex condition = "i == 9 and j == 0" type = "0"></vertex>
+      <vertex condition = "i == 9 and j == 1" type = "0"></vertex>
+      <vertex condition = "i == 9 and j == 2" type = "0"></vertex>
+      <vertex condition = "i == 9 and j == 3" type = "0"></vertex>
+    </block>
+    <block id = "4" dims = "0">
+      <vertex condition = "i == 0" type = "0"></vertex>
+      <vertex condition = "i == 1" type = "0"></vertex>
+      <vertex condition = "i == 2" type = "0"></vertex>
+      <vertex condition = "i == 3" type = "0"></vertex>
+      <vertex condition = "i == 4" type = "0"></vertex>
+      <vertex condition = "i == 5" type = "0"></vertex>
+      <vertex condition = "i == 6" type = "0"></vertex>
+      <vertex condition = "i == 7" type = "0"></vertex>
+      <vertex condition = "i == 8" type = "0"></vertex>
+      <vertex condition = "i == 9" type = "0"></vertex>
+    </block>
+  </block>
+  <block id = "5" dims = "1">
+    <arg name = "i" val = "0..0"></arg>
+    <vertex condition = "i == 0" type = "1">
+      <in bsrc = "0" src = "0"></in>
+      <in bsrc = "1" src = "0"></in>
+    </vertex>
+  </block>
+  <block id = "6" dims = "1">
+    <arg name = "i" val = "0..4"></arg>
+    <block id = "7" dims = "1">
+      <arg name = "j" val = "0..4"></arg>
+      <vertex condition = "i == 0 and j == 0" type = "1">
+        <in bsrc = "2::4" src = "0"></in>
+        <in bsrc = "2::3" src = "0, 0"></in>
+      </vertex>
+      <vertex condition = "i == 0 and j == 1" type = "1">
+        <in bsrc = "2::4" src = "0"></in>
+        <in bsrc = "2::3" src = "0, 1"></in>
+      </vertex>
+      <vertex condition = "i == 0 and j == 2" type = "1">
+        <in bsrc = "2::4" src = "0"></in>
+        <in bsrc = "2::3" src = "0, 2"></in>
+      </vertex>
+      <vertex condition = "i == 0 and j == 3" type = "1">
+        <in bsrc = "2::4" src = "0"></in>
+        <in bsrc = "2::3" src = "0, 3"></in>
+      </vertex>
+      <vertex condition = "i == 1 and j == 0" type = "1">
+        <in bsrc = "2::4" src = "1"></in>
+        <in bsrc = "2::3" src = "0, 0"></in>
+      </vertex>
+      <vertex condition = "i == 1 and j == 1" type = "1">
+        <in bsrc = "2::4" src = "1"></in>
+        <in bsrc = "2::3" src = "1, 1"></in>
+      </vertex>
+      <vertex condition = "i == 1 and j == 2" type = "1">
+        <in bsrc = "2::4" src = "1"></in>
+        <in bsrc = "2::3" src = "2, 2"></in>
+      </vertex>
+      <vertex condition = "i == 1 and j == 3" type = "1">
+        <in bsrc = "2::4" src = "1"></in>
+        <in bsrc = "2::3" src = "3, 3"></in>
+      </vertex>
+      <vertex condition = "i == 2 and j == 0" type = "1">
+        <in bsrc = "2::4" src = "2"></in>
+        <in bsrc = "2::3" src = "0, 0"></in>
+      </vertex>
+      <vertex condition = "i == 2 and j == 1" type = "1">
+        <in bsrc = "2::4" src = "2"></in>
+        <in bsrc = "2::3" src = "2, 1"></in>
+      </vertex>
+      <vertex condition = "i == 2 and j == 2" type = "1">
+        <in bsrc = "2::4" src = "2"></in>
+        <in bsrc = "2::3" src = "4, 2"></in>
+      </vertex>
+      <vertex condition = "i == 2 and j == 3" type = "1">
+        <in bsrc = "2::4" src = "2"></in>
+        <in bsrc = "2::3" src = "6, 3"></in>
+      </vertex>
+    </block>
+    <block id = "8" dims = "0">
+      <vertex condition = "i == 0" type = "1">
+        <in bsrc = "5" src = "0"></in>
+      </vertex>
+      <vertex condition = "i == 1" type = "1">
+        <in bsrc = "6::8" src = "0"></in>
+      </vertex>
+      <vertex condition = "i == 2" type = "1">
+        <in bsrc = "6::8" src = "1"></in>
+      </vertex>
+      <vertex condition = "i == 3" type = "1">
+        <in bsrc = "6::8" src = "2"></in>
+      </vertex>
+    </block>
+  </block>
+</algo>

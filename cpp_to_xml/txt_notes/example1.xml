@@ -1,0 +1,39 @@
+<algo>
+    <params>
+        <param name = "n" type = "int" value = "3"></param>
+        <param name = "m" type = "int" value = "4"></param>
+    </params>
+    <block id = "0" dims = "1">
+        <arg name = "i" val = "0..n-1"></arg>
+
+        <!-- A[i][j] -->
+        <block id = "0" dims = "1">
+            <arg name = "j" val = "0..m-1"></arg>
+            <vertex condition = "" type = "0"></vertex>
+        </block>
+
+        <!-- B[i] -->
+        <block id = "1" dims = "0">
+            <vertex condition = "" type = "1"></vertex>
+        </block>
+
+        <!-- C[i][j] -->
+        <block id = "2" dims = "1">
+            <arg name = "j" val = "0..m-1"></arg>
+            <vertex condition = "" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+        </block>
+    </block>
+    
+    <!-- D[i][0] -->
+    <block id = "1" dims = "2">
+        <arg name = "i" val = "0..n-1"></arg>
+        <arg name = "j" val = "0..0"></arg>
+        <vertex condition = "" type = "2">
+            <in bsrc = "0::1" src = "i"></in>
+            <in bsrc = "0::2" src = "i, 0"></in>
+        </vertex>
+    </block>
+</algo>

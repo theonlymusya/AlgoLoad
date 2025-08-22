@@ -1,0 +1,441 @@
+
+EXAMPLE 0
+
+for (int i = 0; i < m; i++) {
+    for (int j = 0; i < m; i++) {
+// vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+
+       array index                 
+ij    0  1  2  3  4  src
+
+00    0              -        (input)
+01    0              i,   j-1
+02    0              i,   j-1
+10       1           -        (input)
+11       1           i,   j-1
+12       1           i,   j-1
+20          2        -        (input)
+21          2        i,   j-1
+22          2        i,   j-1
+
+EXAMPLE 1
+Нахождение суммы элементов массива сдваиванием
+
+for(int i=1;i<=h;i++)
+    for(int j=0;j<arr_size;j++)
+        if(j<(arr_size/(pow(2,i))))
+            arr[j]=arr[j*2]+arr[2*j+1];
+
+// arr[j]=arr[j*2]+arr[2*j+1];
+
+       array index                 
+ij    0   1   2   3   4   5   6   7   src
+
+10   0+1                              - (input x2)
+11       2+3                          - (input x2)
+12           4+5                      - (input x2)
+13               6+7                  - (input x2)
+14                                    -
+15                                    -
+16                                    -        
+17                                    -
+20   0+1                              - i-1, j      i-1, j+1
+21       2+3                          - i-1, j+1    i-1, j+2
+22                                    -       
+23                                    -
+24                                    -
+25                                    -
+26                                    -        
+27                                    -
+30   0+1                              - i-1, j      i-1, j+1
+31                                    - 
+32                                    -       
+33                                    -
+34                                    -
+35                                    -
+
+EXAMPLE 2
+Перемножение матриц
+
+for ( int i=0; i<2;i++) {
+    for (int j=0; j<2;j++) {
+        matrix_out[i][j]=4;
+        
+        for(int k=0; k<2;k++)
+            matrix_out[i][j] = matrix_out[i][j]; // + matrix_1[i][k] * matrix_2[k][j];
+    }
+}
+
+t0       array index                 
+n  ij    00  01  10  11  src / bsrc
+
+0  00    c               - (input)
+3  01        c           - (input)
+6  10            c       - (input)
+9  11                c   - (input)
+
+
+t1       array index                 
+n  ijk   00  01  10  11  src / bsrc
+
+1  000   00              bsrc (0, 00 )  
+2  001   00              src  (1, 000) 
+4  010       01          bsrc (0, 01 )  
+5  011       01          src  (1, 010) 
+7  100           10      bsrc (0, 10 )  
+8  101           10      src  (1, 100) 
+10 110               11  bsrc (0, 11 )
+11 111               11  src  (1, 110) 
+
+EXAMPLE 3
+
+for (i = 2)
+    for (j = 2)
+        vec_out[i * j] = vec_out[  i  ]; // + matrix[  i  ][j] * vec_in[j]; // table (0)
+        vec_out[i + j] = vec_out[  i  ]; // + matrix[  i  ][j] * vec_in[j]; // table (1)
+
+Нужно из дерева узнать расписание операций
+
+[i * j] = [i]
+table (0)          vec_out index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+0            00    0              input      +
+2            01    0              src(1, 00) +
+4            02    0              src(1, 00) +
+6            10    1              src(1, 01) +
+8            11       1           src(1, 10) +
+10           12          1        src(1, 11)
+12           20    2              src(0, 10)
+14           21          2        src(1, 20)
+16           22                2  src(0, 21)
+
+
+[i + j] = [i]
+table (1)          vec_out index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+1            00    0              src(0, 00) 
+3            01       0           src(0, 01) 
+5            02          0        src(1, 00)    
+7            10       1           src(1, 01) 
+9            11          1        src(1, 02) 
+11           12             1     src(1, 10)     
+13           20          2        src(0, 12)      
+15           21             2     src(1, 12)     
+17           22                2  src(0, 22)
+
+(формирую для примера)
+
+Операция: А[i + j] = A[i] 
+
+Таблица для переменной A (Номер таблицы = 1)
+
+                   Индексы массива A:                
+Расписание   ij    0  1  2  3  4          Источник(Номер таблицы, ij)
+
+1            00    0                      Источник(0, 00) 
+3            01       0                   Источник(0, 01) 
+5            02          0                Источник(1, 00)    
+7            10       1                   Источник(1, 01) 
+9            11          1                Источник(1, 02) 
+11           12             1             Источник(1, 10)     
+13           20          2                Источник(0, 12)      
+15           21             2             Источник(1, 12)     
+17           22                2          Источник(0, 22)
+
+
+
+EXAMPLE 4
+ПОСЛЕДОВАТЕЛЬНО-ПАРАЛЛЕЛЬНЫЙ МЕТОД СУММИРОВАНИЯ
+
+double X[K * K];
+double S[P];
+double SUM;
+
+for (int i = 0; i < P; i++) {
+    S[i] = X[K * i];
+
+    if (i < P - 1) { //i = 0
+        for (int j = 1; j < K; j++) {
+            S[i] += X[K * i + j];
+        }
+    } else { //i = 1, 2
+        for (int j = 1; j < Q; j++) {
+            S[i] += X[K * i + j];
+        }
+    }
+}
+
+SUM = S[0];
+for (int i = 1; i < P; i++) {
+    SUM += S[i];
+}
+
+Пусть P = 2, K = 2
+
+S[i] = X[K * i];
+#размерность таблица зависит от размерности переменной слева от итератора присванивания
+table (0)         S index                 
+global_iter  i    0  1  2   src(table_n, ij)
+
+0            0    0         input      
+             1       2      input 
+             2          4   input
+
+S[i] += X[K * i + j]; (1)
+S[i] = S[i] + X[K * i + j]
+
+table (1)          S index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+             00                   input      
+             01                   src(,) 
+             02                   src(,) 
+             10                   src(,) 
+             11                   src(,) 
+             12                   src(,)
+             20                   src(,)
+             21                   src(,)
+             22                   src(,)
+
+S[i] += X[K * i + j]; (2)
+
+table (2)          vec_out index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+             00                   input      
+             01                   src(,) 
+             02                   src(,) 
+             10                   src(,) 
+             11                   src(,) 
+             12                   src(,)
+             20                   src(,)
+             21                   src(,)
+             22                   src(,)
+
+EXAMPLE 5
+
+for (int i = 0; i < n; ++i) {
+    B[i] = y[i];
+    for (int j = 0; j < m; ++j) {
+        A[i][j] = x[i] + y[j];
+    }
+}
+for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+        C[i][j] = A[i][j] + B[i];
+    }
+}
+
+<algo>
+    <params>
+        <param name = "n" type = "int" value = "3"></param>
+        <param name = "m" type = "int" value = "4"></param>
+    </params>
+    <block id = "0" dims = "1">
+        <arg name = "i" val = "0..n-1"></arg>
+            <block id = "0" dims = "0">
+                <vertex condition = "" type = "1"></vertex>
+            </block>
+            <block id = "1" dims = "1">
+                <arg name = "j" val = "0..m-1"></arg>
+                <vertex condition = "" type = "0"></vertex>
+            </block>
+    </block>
+    <block id = "1" dims = "2">
+        <arg name = "i" val = "0..n-1"></arg>
+        <arg name = "j" val = "0..m-1"></arg>
+        <vertex condition = "" type = "2">
+            <in bsrc = "0::0" src = "i"></in>
+            <in bsrc = "0::1" src = "i, j"></in>
+        </vertex>
+    </block>
+</algo>
+
+<algo>
+    <params>
+        <param name = "n" type = "int" value = "3"></param>
+        <param name = "m" type = "int" value = "4"></param>
+    </params>
+    <block id = "0" dims = "1">
+        <arg name = "i" val = "0..2"></arg>
+            <block id = "0" dims = "0">
+                <vertex condition = "" type = "1"></vertex>
+            </block>
+            <block id = "1" dims = "1">
+                <arg name = "j" val = "0..3"></arg>
+                <vertex condition = "" type = "0"></vertex>
+            </block>
+    </block>
+    <block id = "1" dims = "2">
+        <arg name = "i" val = "0..2"></arg>
+        <arg name = "j" val = "0..3"></arg>
+        <vertex condition = "" type = "2">
+            <in bsrc = "0::0" src = "i"></in>
+            <in bsrc = "0::1" src = "i, j"></in>
+        </vertex>
+    </block>
+</algo>
+
+....
+
+EXAMPLE 6
+
+for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+        A[i][j] = x[i];
+    }
+    B[i] = y[i];
+    for (int j = 0; j < m; ++j) {
+        C[i][j] = A[i][j] + B[i];
+    }
+}
+for (int i = 0; i < n; ++i) {
+    D[i][0] = B[i] + C[i][0];
+}
+
+<algo>
+    <params>
+        <param name = "n" type = "int" value = "3"></param>
+        <param name = "m" type = "int" value = "4"></param>
+    </params>
+    <block id = "0" dims = "1">
+
+        <arg name = "i" val = "0..n-1"></arg>
+
+        <!-- A[i][j] -->
+        <block id = "0" dims = "1">
+            <arg name = "j" val = "0..m-1"></arg>
+            <vertex condition = "" type = "0"></vertex>
+        </block>
+
+        <!-- B[i] -->
+        <block id = "1" dims = "0">
+            <vertex condition = "" type = "1"></vertex>
+        </block>
+
+        <!-- C[i][j] -->
+        <block id = "2" dims = "1">
+            <arg name = "j" val = "0..m-1"></arg>
+            <vertex condition = "" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+        </block>
+
+    </block>
+
+    <!-- D[i][0] -->
+    <block id = "1" dims = "2">
+        <arg name = "i" val = "0..n-1"></arg>
+        <arg name = "j" val = "0..0"></arg>
+        <vertex condition = "" type = "2">
+            <in bsrc = "0::1" src = "i"></in>
+            <in bsrc = "0::2" src = "i, 0"></in>
+        </vertex>
+    </block>
+
+</algo>
+
+
+// операция присваивания = <block>
+// если мы внутри операции BLOCK - значит операция не одна, значит мы им делаем дом <block>'и
+// в принципе где нет src можно даже не разворачивать диапазон пространства итераций
+// <block id> это буквально айдишники Таблиц
+// блок params как будто даже можно не писать
+
+<algo>
+    <params>
+        <param name = "n" type = "int" value = "3"></param>
+        <param name = "m" type = "int" value = "4"></param>
+    </params>
+    <block id = "0" dims = "1">
+
+        <arg name = "i" val = "0..2"></arg>
+
+        <!-- A[i][j] -->
+        <block id = "0" dims = "1">
+            <arg name = "j" val = "0..3"></arg>
+            <vertex condition = "" type = "0"></vertex>
+        </block>
+
+        <!-- B[i] -->
+        <block id = "1" dims = "0">
+            <vertex condition = "" type = "1"></vertex>
+        </block>
+
+        <!-- C[i][j] -->
+        <block id = "2" dims = "1">
+            <arg name = "j" val = "0..3"></arg>
+            <vertex condition = "i == 0 and j == 0" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 0 and j == 1" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 0 and j == 2" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 0 and j == 3" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 1 and j == 0" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 1 and j == 1" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 1 and j == 2" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 1 and j == 3" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 2 and j == 0" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 2 and j == 1" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 2 and j == 2" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+            <vertex condition = "i == 2 and j == 3" type = "0">
+                <in bsrc = "0" src = "i"></in>
+                <in bsrc = "0::1" src = "i, j"></in>
+            </vertex>
+        </block>
+
+    </block>
+
+    <!-- D[i][0] -->
+    <block id = "1" dims = "2">
+        <arg name = "i" val = "0..2"></arg>
+        <arg name = "j" val = "0..0"></arg>
+        <vertex condition = "i == 0 and j == 0" type = "2">
+            <in bsrc = "0::1" src = "0"></in>
+            <in bsrc = "0::2" src = "0, 0"></in>
+        </vertex>
+        <vertex condition = "i == 1 and j == 0" type = "2">
+            <in bsrc = "0::1" src = "1"></in>
+            <in bsrc = "0::2" src = "1, 0"></in>
+        </vertex>
+        <vertex condition = "i == 2 and j == 0" type = "2">
+            <in bsrc = "0::1" src = "2"></in>
+            <in bsrc = "0::2" src = "2, 0"></in>
+        </vertex>
+    </block>
+    
+</algo>

@@ -1,0 +1,147 @@
+<algo>
+  <block id = "0" dims = "2">
+    <arg name = "i" val = "0..2"></arg>
+    <arg name = "j" val = "0..2"></arg>
+      
+      <!-- denom -->
+      <block id = "1" dims = "0">
+        <vertex condition = "i == 0 and j == 2" type = "0"></vertex>
+        <vertex condition = "i == 0 and j == 1" type = "0">
+          <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+          <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+        </vertex>
+        <vertex condition = "i == 1 and j == 2" type = "0">
+          <in bsrc = "0::2::6" src = "0, 1, 1"></in>
+          <in bsrc = "0::2::6" src = "0, 1, 1"></in>
+          <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+          <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+        </vertex>
+      </block>
+
+      <block id = "2" dims = "1">
+        <arg name = "k" val = "0..2"></arg>
+
+        <!-- a -->
+        <block id = "3" dims = "0">
+          <vertex condition = "i == 0 and j == 2 and k == 0" type = "2"></vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 1" type = "2"></vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 2" type = "2"></vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 0" type = "2"></vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 1" type = "2"></vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 2" type = "2"></vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 0" type = "2">
+            <in bsrc = "0::2::6" src = "0, 1, 0"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 1" type = "2">
+            <in bsrc = "0::2::6" src = "0, 1, 1"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 2" type = "2">
+            <in bsrc = "0::2::6" src = "0, 1, 2"></in>
+          </vertex>
+        </block>
+
+        <!-- b -->
+        <block id = "4" dims = "0">
+          <vertex condition = "i == 0 and j == 2 and k == 0" type = "3"></vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 1" type = "3"></vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 2" type = "3"></vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 0" type = "3">
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 1" type = "3">
+            <in bsrc = "0::2::5" src = "0, 2, 1"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 2" type = "3">
+            <in bsrc = "0::2::5" src = "0, 2, 2"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 0" type = "3">
+            <in bsrc = "0::2::6" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 1" type = "3">
+            <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 2" type = "3">
+            <in bsrc = "0::2::6" src = "0, 2, 2"></in>
+          </vertex>
+        </block>
+
+        <!-- A[i-1][k] = ( A[i-1][j] * a + A[i][j] * b ) / denom; (0::2::5) --> 
+        <block id = "5" dims = "0">
+          <vertex condition = "i == 0 and j == 2 and k == 0" type = "1"></vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 1" type = "1">
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+            <in bsrc = "0::2::6" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 2" type = "1">
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+            <in bsrc = "0::2::6" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 0" type = "1">
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 1" type = "1">
+            <in bsrc = "0::2::5" src = "0, 1, 0"></in>
+            <in bsrc = "0::2::6" src = "0, 1, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 2" type = "1">
+            <in bsrc = "0::2::5" src = "0, 1, 0"></in>
+            <in bsrc = "0::2::6" src = "0, 1, 0"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 0" type = "1">
+            <in bsrc = "0::2::6" src = "0, 1, 1"></in>
+            <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 1" type = "1">
+            <in bsrc = "0::2::6" src = "0, 1, 1"></in>
+            <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 2" type = "1">
+            <in bsrc = "0::2::5" src = "1, 2, 1"></in>
+            <in bsrc = "0::2::6" src = "1, 2, 1"></in>
+          </vertex>
+        </block>
+
+        <!-- A[i][k]   = (-A[i][j] * a + A[i-1][j] * b) / denom; (0::2::6) -->
+        <block id = "6" dims = "0"> 
+          <vertex condition = "i == 0 and j == 2 and k == 0" type = "1">
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 1" type = "1">
+            <in bsrc = "0::2::6" src = "0, 2, 0"></in>
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 2 and k == 2" type = "1">
+            <in bsrc = "0::2::6" src = "0, 2, 0"></in>
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 0" type = "1">
+            <in bsrc = "0::2::5" src = "0, 2, 0"></in>
+            <in bsrc = "0::2::5" src = "0, 1, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 1" type = "1">
+            <in bsrc = "0::2::6" src = "0, 1, 0"></in>
+            <in bsrc = "0::2::5" src = "0, 1, 0"></in>
+          </vertex>
+          <vertex condition = "i == 0 and j == 1 and k == 2" type = "1">
+            <in bsrc = "0::2::6" src = "0, 1, 0"></in>
+            <in bsrc = "0::2::5" src = "0, 1, 0"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 0" type = "1">
+            <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+            <in bsrc = "0::2::6" src = "0, 1, 1"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 1" type = "1">
+            <in bsrc = "0::2::6" src = "0, 2, 1"></in>
+            <in bsrc = "0::2::5" src = "1, 2, 1"></in>
+          </vertex>
+          <vertex condition = "i == 1 and j == 2 and k == 2" type = "1">
+            <in bsrc = "0::2::6" src = "1, 2, 1"></in>
+            <in bsrc = "0::2::5" src = "1, 2, 1"></in>
+          </vertex>
+        </block>
+
+      </block>
+
+  </block>
+
+</algo>

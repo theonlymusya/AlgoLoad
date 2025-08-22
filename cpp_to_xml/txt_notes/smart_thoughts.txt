@@ -1,0 +1,1135 @@
+1. Разврертки операций += -= /= *=
+vec_out[i] += matrix[i][j] * vec_in[j];
+vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+2. Зависимость одинаковых переменных с одинаковыми индексами?
+vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+src = i, j-1
+vec_out[i] = vec_out[i - 1] + matrix[i][j] * vec_in[j];
+src = i-1, j
+
+
+// vec_out[i ^ 3] = vec_out[i] + matrix[i][j] * vec_in[j];
+
+
+f1 = [0, 1, 2,  3, ...] // i
+f2 = [0, 1, 8, 27, ...] // i ^ 3
+
+
+// vec_out[f2[k]] = vec_out[f1[k]]      // + matrix[i][j] * vec_in[j];
+
+
+iterator = Iterator([f1, f2])
+
+
+
+
+for (int i = 0; i < m; i++)
+    for (int j = 0; j < n; i++)
+    //i = 0, j = 0
+    //i = 0, j = 1
+    //суть не одинаковых индексных выражениях а в одинаковых значениях этих выражений
+    vec_out[8] = vec_out[  2  ] + matrix[  i  ][j] * vec_in[j];
+
+vec_out[0] = x
+0.(i = 0, j = 0) vec_out[0] = x + y
+1.(i = 0, j = 1) vec_out[0] = (x + y) + z
+2. 777
+
+vec_out[2] = d
+0. (i = 8, j = 0) vec_out[8] = d
+1. (i = 8, j = 1) vec_out[8] = d
+....
+x. (i = 27, j = 0) vec_out[27] = vec_out[3]
+
+// <block dims="1">
+//    <arg name="i" val="1..m^3"></arg>
+//    <arg name="j" val="1..n"></arg>
+//
+//    <vertex condition="i == 0" type="2">
+//        <in src="0, j - 1"></in>
+//    </vertex>
+//    <vertex condition="i == 1" type="2">
+//        <in src="1, j - 1 "></in>
+//     </vertex>
+//     <vertex condition="i == 8" type="2">
+//         <in src="2, j"></in>
+//     </vertex>
+// </block>
+
+
+
+#include <iostream>
+#include <vector>
+#include <utility> // Для std::pair
+
+class DualArrayIterator {
+private:
+    const std::vector<int>& f1;
+    const std::vector<int>& f2;
+    size_t index; // Текущий индекс итератора
+
+public:
+    // Конструктор
+    DualArrayIterator(const std::vector<int>& array1, const std::vector<int>& array2)
+        : f1(array1), f2(array2), index(0) {
+        if (f1.size() != f2.size()) {
+            throw std::invalid_argument("Arrays f1 and f2 must be of the same size");
+        }
+    }
+
+    // Проверка на конец итерации
+    bool hasNext() const {
+        return index < f1.size();
+    }
+
+    // Получение следующего элемента (пары значений)
+    std::pair<int, int> next() {
+        if (!hasNext()) {
+            throw std::out_of_range("Iterator has no more elements");
+        }
+        return {f1[index], f2[index++]};
+    }
+
+    // Получение текущего индекса
+    size_t getIndex() const {
+        return index;
+    }
+};
+
+int generate_1() {
+    std::vector<int> f1 = {0, 1, 8, 27};
+    std::vector<int> f2 = {0, 1, 2,  3};
+
+    DualArrayIterator iterator(f1, f2);
+    
+    // <arg name="i" val="1..m^3"></arg>
+
+    while (iterator.hasNext()) {
+        auto [val1, val2] = iterator.next();
+        
+        // vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        // vec_out[f1[k]] = vec_out[f2[k]] + matrix[f2[k]][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", val1);
+        printf("    <in src="%d"></in>", val2);
+        printf("</vertex>");
+    }
+
+    return 0;
+}
+
+//for (int i = 0; i < m; i++) {
+//<arg name="i" val="1..m"></arg>
+
+//<arg name="i" val="1..(m-1)^3"></arg>
+
+1. Вопрос: чем ограничивать: размер массива или размером итерации = max(f1, f2)
+*. Хорошо бы сравнивать размер массива с индексами
+vec_out[n^5];
+for (int i = 0; i < m; i++) {
+    vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+    vec_out[i ^ 2] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+
+int generate_2() {
+    std::vector<int> f1 = {0, 1, 8, 27};
+    std::vector<int> f2 = {0, 1, 2,  3};
+    std::vector<int> f3 = {0, 1, 4,  9};
+
+    DualArrayIterator iterator([f1, f2, f3]);
+    
+    // <arg name="i" val="1..m^3"></arg>
+
+    while (iterator.hasNext()) {
+        auto [val1, val2, val3] = iterator.next();
+        
+        // vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", val1);
+        printf("    <in src="%d"></in>", val2);
+        printf("</vertex>");
+        
+        // vec_out[i ^ 2] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", val3);
+        printf("    <in src="%d"></in>", val2);
+        printf("</vertex>");
+    }
+
+    return 0;
+}
+
+//отображается двумерно
+for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+        vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+    }
+}
+
+<algo>
+<params>
+    <param name="n" type="int" value="5"></param>
+    <param name="m" type="int" value="4"></param>
+</params>
+
+<block dims="2">
+    <arg name="i" val="1..m-1"></arg>
+    <arg name="j" val="-n-1..0"></arg>
+    
+    <vertex condition="j>1" type="2">
+        <in src="i,j-1"></in>
+    </vertex>
+</block>
+</algo>
+vec_out[600]
+for (int i = 0; i < m; i++) {
+    for (int j = 0; i < m; i++) {
+        vec_out[i*j**2] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        !!!!!!!если мы работаем на итеративной сетке, то какая разница какое индексное выражение слева
+        //i ^ 3
+        //0 n
+        
+        //cond (i)
+        //0 max(i^3)
+        
+        //i * j
+        //cond (i/j)?
+        //<arg name="i" val="0..???"></arg>
+        //<arg name="j" val="0..m"></arg>
+    }
+}
+//i*j ?= i -> src i,j-1 -> j-1 = -1 ->>>>>>> cond "?" src=0,-1
+
+//i = 0, j = 0 -> i * j = 0, i = 0  j = -1
+//i = 0, j = 1 -> i * j = 0, i = 0  j = 0
+//i = 0, j = 2 -> i * j = 0, i = 0  ==
+
+//i = 1, j = 0 -> i * j = 0, i = 1  !=
+//i = 1, j = 1 -> i * j = 1, i = 1  ==
+//i = 1, j = 2 -> i * j = 2, i = 1  !=
+
+//i = 2, j = 0 -> i * j = 0, i = 2  !=
+//i = 2, j = 1 -> i * j = 2, i = 2  ==
+//i = 2, j = 2 -> i * j = 4, i = 2  !=
+
+<algo>
+    <params>
+    <param name="n" type="int" value="3"></param>
+    <param name="m" type="int" value="3"></param>
+    </params>
+
+    <block dims="2">
+        <arg name="i" val="0..m-1"></arg>
+        <arg name="j" val="0..n-1"></arg>
+        
+        <vertex condition="(i == 0) and (j == 0)" type="1">
+            <in src="0, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 0) and (j == 1)" type="1">
+            <in src="0, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 0) and (j == 2)" type="1">
+            <in src="0, j - 1"></in>
+        </vertex>
+        
+        <vertex condition="(i == 1) and (j == 0)" type="1">
+            <in src="1, j"></in>
+        </vertex>
+        <vertex condition="(i == 1) and (j == 1)" type="1">
+            <in src="1, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 1) and (j == 2)" type="1">
+            <in src="1, j"></in>
+        </vertex>
+        
+        <vertex condition="(i == 2) and (j == 0)" type="1">
+            <in src="2, j"></in>
+        </vertex>
+        <vertex condition="(i == 2) and (j == 1)" type="1">
+            <in src="2, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 2) and (j == 2)" type="1">
+            <in src="2, j"></in>
+        </vertex>
+        
+    </block>
+</algo>
+
+vec_out[i*j] = vec_out[i]
+i,j
+если верно, то
+i*j = i -> j-1
+i*j != i -> j
+
+src - done
+
+
+
+
+       array index                 
+ij    0  1  2  3  4  src
+
+00   *0              -        (input)
+01   *0              i,   j-1
+02   *0              i,   j-1
+10   *1              i-1, j
+11       1           -        (input)
+12          1        i,   j-1
+20    2              i-1, j+2
+21          2        i,   j-1
+22                2  -        (input)
+
+
+for (int i = 0; i < m; i++) {
+    for (int j = 0; i < m; i++) {
+// vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+
+<algo>
+    <params>
+    <param name="n" type="int" value="3"></param>
+    <param name="m" type="int" value="3"></param>
+    </params>
+
+    <block dims="2">
+        <arg name="i" val="0..m-1"></arg>
+        <arg name="j" val="0..n-1"></arg>
+        
+        <vertex condition="(i == 0) and (j == 0)" type="1">
+            <in src="0, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 0) and (j == 1)" type="1">
+            <in src="0, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 0) and (j == 2)" type="1">
+            <in src="0, j - 1"></in>
+        </vertex>
+        
+        <vertex condition="(i == 1) and (j == 0)" type="1">
+            <in src="1, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 1) and (j == 1)" type="1">
+            <in src="1, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 1) and (j == 2)" type="1">
+            <in src="1, j - 1"></in>
+        </vertex>
+        
+        <vertex condition="(i == 2) and (j == 0)" type="1">
+            <in src="2, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 2) and (j == 1)" type="1">
+            <in src="2, j - 1"></in>
+        </vertex>
+        <vertex condition="(i == 2) and (j == 2)" type="1">
+            <in src="2, j - 1"></in>
+        </vertex>
+        
+    </block>
+</algo> 
+
+
+
+       array index                 
+ij    0  1  2  3  4  src
+
+00    0              -        (input)
+01    0              i,   j-1
+02    0              i,   j-1
+10       1           -        (input)
+11       1           i,   j-1
+12       1           i,   j-1
+20          2        -        (input)
+21          2        i,   j-1
+22          2        i,   j-1
+
+
+
+for(int i=1;i<=h;i++)
+    for(int j=0;j<arr_size;j++)
+        if(j<(arr_size/(pow(2,i))))
+            arr[j]=arr[j*2]+arr[2*j+1];
+
+
+
+
+// arr[j]=arr[j*2]+arr[2*j+1];
+
+       array index                 
+ij    0   1   2   3   4   5   6   7   src
+
+10   0+1                              - (input x2)
+11       2+3                          - (input x2)
+12           4+5                      - (input x2)
+13               6+7                  - (input x2)
+14                                    -
+15                                    -
+16                                    -        
+17                                    -
+20   0+1                              - i-1, j      i-1, j+1
+21       2+3                          - i-1, j+1    i-1, j+2
+22                                    -       
+23                                    -
+24                                    -
+25                                    -
+26                                    -        
+27                                    -
+30   0+1                              - i-1, j      i-1, j+1
+31                                    - 
+32                                    -       
+33                                    -
+34                                    -
+35                                    -
+36                                    -        
+37                                    -
+
+
+
+
+// 2. ПЕРЕМНОЖЕНИЕ МАТРИЦ
+for ( int i=0; i<2;i++) {
+    for (int j=0; j<2;j++) {
+        matrix_out[i][j]=4; //должна ли рисоваться
+        
+        for(int k=0; k<2;k++)
+            matrix_out[i][j] = matrix_out[i][j]; // + matrix_1[i][k] * matrix_2[k][j];
+    }
+}
+
+
+t0       array index                 
+n  ij    00  01  10  11  src / bsrc
+
+0  00    c               - (input)
+3  01        c           - (input)
+6  10            c       - (input)
+9  11                c   - (input)
+
+
+t1       array index                 
+n  ijk   00  01  10  11  src / bsrc
+
+1  000   00              bsrc (0, 00 )  
+2  001   00              src  (1, 000) 
+4  010       01          bsrc (0, 01 )  
+5  011       01          src  (1, 010) 
+7  100           10      bsrc (0, 10 )  
+8  101           10      src  (1, 100) 
+10 110               11  bsrc (0, 11 )
+11 111               11  src  (1, 110) 
+
+
+
+
+
+
+for (i = 2)
+    for (j = 4)
+        vec_out[i * j] = vec_out[  i  ]; // + matrix[  i  ][j] * vec_in[j]; // table (0)
+        vec_out[i + j] = vec_out[  i  ]; // + matrix[  i  ][j] * vec_in[j]; // table (1)
+
+Нужно из дерева узнать расписание операций
+
+[i * j] = [i]
+table (0)          vec_out index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+0            00    0              input      +
+2            01    0              src(1, 00) +
+4            02    0              src(1, 00) +
+6            10    1              src(1, 01) +
+8            11       1           src(1, 10) +
+10           12          1        src(1, 11)
+12           20    2              src(0, 10)
+14           21          2        src(1, 20)
+16           22                2  src(0, 21)
+
+
+[i + j] = [i]
+table (1)          vec_out index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+1            00    0              src(0, 00) +
+3            01       0           src(0, 01) +
+5            02          0        src(1, 00) +    
+7            10       1           src(1, 01) +
+9            11          1        src(1, 02) 
+11           12             1     src(1, 10)     
+13           20          2        src(0, 12)      
+15           21             2     src(1, 12)     
+17           22                2  src(0, 22)
+
+
+
+
+int generate_3() {
+    std::vector<int> f_i  = {0, 0, 0, 1, 1, 1, 2, 2, 2};
+    std::vector<int> f_j  = {0, 1, 2, 0, 1, 2, 0, 1, 2};
+    std::vector<int> f_ij = {0, 0, 0, 0, 1, 2, 0, 2, 4};
+
+    DualArrayIterator iterator([f_i, f_j, f_ij]);
+    
+    // <arg name="i" val="1..m^3"></arg>
+
+    while (iterator.hasNext()) {
+        auto [i, j, ij] = iterator.next();
+        
+        // vec_out[i * j] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", ij);
+        printf("    <in src="%d"></in>", i);
+        printf("</vertex>");
+    }
+}
+
+
+
+xty
+1. Разврертки операций += -= /= *=
+vec_out[i] += matrix[i][j] * vec_in[j];
+vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+2. Зависимость одинаковых переменных с одинаковыми индексами?
+vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+src = i, j-1
+vec_out[i] = vec_out[i - 1] + matrix[i][j] * vec_in[j];
+src = i-1, j
+
+
+// vec_out[i ^ 3] = vec_out[i] + matrix[i][j] * vec_in[j];
+
+
+f1 = [0, 1, 2,  3, ...] // i
+f2 = [0, 1, 8, 27, ...] // i ^ 3
+
+
+// vec_out[f2[k]] = vec_out[f1[k]]      // + matrix[i][j] * vec_in[j];
+
+
+iterator = Iterator([f1, f2])
+
+
+
+
+for (int i = 0; i < m; i++)
+    for (int j = 0; j < n; i++)
+    //i = 0, j = 0
+    //i = 0, j = 1
+    //суть не одинаковых индексных выражениях а в одинаковых знаxtx
+    vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+
+// <block dims="1">
+//    <arg name="i" val="1..m^3"></arg>
+//    <arg name="j" val="1..n"></arg>
+//
+//    <vertex condition="i == 0 && j == 0" type="2">
+//        <in src="0, 0"></in>
+//    </vertex>
+//    <vertex condition="i == 0 && j == 1" type="2">
+//        <in src="0, 1"></in>
+//    </vertex>0
+//        <in src="0, 1"></in>
+//    <vertex condition="i == 1" type="2">
+//        <in src="1, j - 1 "></in>
+//     </vertex>
+//     <vertex condition="i == 8" type="2">
+//         <in src="2, j"></in>
+//     </vertex>
+// </block>
+
+
+
+#include <iostream>
+#include <vector>
+#include <utility> // Для std::pair
+
+class DualArrayIterator {
+private:
+    const std::vector<int>& f1;
+    const std::vector<int>& f2;
+    size_t index; // Текущий индекс итератора
+
+public:
+    // Конструктор
+    DualArrayIterator(const std::vector<int>& array1, const std::vector<int>& array2)
+        : f1(array1), f2(array2), index(0) {
+        if (f1.size() != f2.size()) {
+            throw std::invalid_argument("Arrays f1 and f2 must be of the same size");
+        }
+    }
+
+    // Проверка на конец итерации
+    bool hasNext() const {
+        return index < f1.size();
+    }
+
+    // Получение следующего элемента (пары значений)
+    std::pair<int, int> next() {
+        if (!hasNext()) {
+            throw std::out_of_range("Iterator has no more elements");
+        }
+        return {f1[index], f2[index++]};
+    }
+
+    // Получение текущего индекса
+    size_t getIndex() const {
+        return index;
+    }
+};
+
+int generate_1() {
+    std::vector<int> f1 = {0, 1, 8, 27};
+    std::vector<int> f2 = {0, 1, 2,  3};
+
+    DualArrayIterator iterator(f1, f2);
+    
+    // <arg name="i" val="1..m^3"></arg>
+
+    while (iterator.hasNext()) {
+        auto [val1, val2] = iterator.next();
+        
+        // vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        // vec_out[f1[k]] = vec_out[f2[k]] + matrix[f2[k]][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", val1);
+        printf("    <in src="%d"></in>", val2);
+        printf("</vertex>");
+    }
+
+    return 0;
+}
+
+//for (int i = 0; i < m; i++) {
+//<arg name="i" val="1..m"></arg>
+
+//<arg name="i" val="1..(m-1)^3"></arg>
+
+1. Вопрос: чем ограничивать: размер массива или размером итерации = max(f1, f2)
+*. Хорошо бы сравнивать размер массива с индексами
+vec_out[n^5];
+for (int i = 0; i < m; i++) {
+    vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+    vec_out[i ^ 2] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+
+int generate_2() {
+    std::vector<int> f1 = {0, 1, 8, 27};
+    std::vector<int> f2 = {0, 1, 2,  3};
+    std::vector<int> f3 = {0, 1, 4,  9};
+
+    DualArrayIterator iterator([f1, f2, f3]);
+    
+    // <arg name="i" val="1..m^3"></arg>
+
+    while (iterator.hasNext()) {
+        auto [val1, val2, val3] = iterator.next();
+        
+        // vec_out[i ^ 3] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", val1);
+        printf("    <in src="%d"></in>", val2);
+        printf("</vertex>");
+        
+        // vec_out[i ^ 2] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", val3);
+        printf("    <in src="%d"></in>", val2);
+        printf("</vertex>");
+    }
+
+    return 0;
+}
+
+//отображается двумерно
+for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+        vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+    }
+}
+
+<algo>
+<params>
+    <param name="n" type="int" value="5"></param>
+    <param name="m" type="int" value="4"></param>
+</params>
+
+<block dims="2">
+    <arg name="i" val="1..m"></arg>
+    <arg name="j" val="1..n+1"></arg>
+    
+    <vertex condition="j>1" type="2">
+        <in src="i,j-1"></in>
+    </vertex>
+</block>
+</algo>
+
+for (int i = 0; i < m; i++) {
+    for (int i = 0; i < m; i++) {
+        vec_out[i * j] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+    }
+}
+
+//i = 0, j = 0 -> i * j = 0, i = 0
+//i = 0, j = 1 -> i * j = 0, i = 0
+//i = 0, j = 2 -> i * j = 0, i = 0
+//i = 1, j = 0 -> i * j = 0, i = 1
+//i = 1, j = 1 -> i * j = 1, i = 1
+//i = 1, j = 2 -> i * j = 2, i = 1
+//i = 2, j = 0 -> i * j = 0, i = 2
+//i = 2, j = 1 -> i * j = 2, i = 2
+//i = 2, j = 2 -> i * j = 4, i = 2
+
+<block dims="1">
+<arg name="i" val="1..m^3"></arg>
+<arg name="j" val="1..m^3"></arg>
+    <vertex condition="i == 0" type="2">
+        <in src="0"></in>
+    </vertex>
+    <vertex condition="i == 1" type="2">
+        <in src="1"></in>
+    </vertex>
+    <vertex condition="i == 8" type="2">
+        <in src="2"></in>
+    </vertex>
+    </block>
+
+
+int generate_3() {
+    std::vector<int> f_i  = {0, 0, 0, 1, 1, 1, 2, 2, 2};
+    std::vector<int> f_j  = {0, 1, 2, 0, 1, 2, 0, 1, 2};
+    std::vector<int> f_ij = {0, 0, 0, 0, 1, 2, 0, 2, 4};
+
+    DualArrayIterator iterator([f_i, f_j, f_ij]);
+    
+    // <arg name="i" val="1..m^3"></arg>
+
+    while (iterator.hasNext()) {
+        auto [i, j, ij] = iterator.next();
+        
+        // vec_out[i * j] = vec_out[  i  ] + matrix[  i  ][j] * vec_in[j];
+        
+        printf("<vertex condition="i == %d" type="2">", ij);
+        printf("    <in src="%d"></in>", i);
+        printf("</vertex>");
+    }
+}
+
+
+
+21.02
+
+int main() {
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            for (int k = 0; k < l; ++k) {
+                A[i][j][k] = x[i] + y[j] + z[k];
+            }
+            B[i][j] = x[i] + y[j];
+            C[i][j] = x[j] + y[i];
+        }
+    }
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            D[i][j] = A[i][j][0] + B[i][j] + C[i][j];
+        }
+    }
+}
+
+
+
+
+
+
+Program:
+  Function: main
+    For loop:
+      Initialization: inti=0
+      Condition: i<n
+      Increment: ++i
+      For loop:
+        Initialization: intj=0
+        Condition: j<m
+        Increment: ++j
+        
+        <If statement 0>
+            <operation 0> 
+                -> i[0..n]
+                -> j[0..m]
+                -> if0
+        
+            For loop:
+              Initialization: intk=0
+              Condition: k<l
+              Increment: ++k
+              
+              <If statement 1>
+                  <operation 1> 
+                    -> i[0..n]
+                    -> j[0..m]
+                    -> if0
+                    -> k[0..l]
+                    -> if1
+          
+          
+В этих таблицах первым делом заполняются индексы пространства итераций. Таблицы создаются для каждой операции.
+Размер таблицы i*j*k. Далее нужно заполнить значение глобального итерирования
+
+
+table (0)          some vec index                 
+global_iter  ij    0  1  2  3  4  src(table_n, ij)
+
+0            00                   src(0, 00) 
+?            01                   src(0, 01) 
+?            10                   src(1, 01) 
+?            11                   src(1, 02) 
+
+
+table (1)          some vec index                 
+global_iter  ijl   0  1  2  3  4  src(table_n, ij)
+
+1            000                  src(0, 00) 
+?            001                  src(0, 01) 
+?            010                  src(1, 01) 
+?            011                  src(1, 02) 
+?            100                  src(0, 00) 
+?            101                  src(0, 01) 
+?            110                  src(1, 01) 
+?            111                  src(1, 02) 
+
+
+
+
+
+globalIteratorController = GlobalIteratorController();
+
+for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+        if (...) {
+            // operation 0 -> как то определяем src
+            table0.row([i, j]).globalIterator.set(globalIteratorController.next());
+            
+            table0.row([i, j]).src.set(...)     // table_n, ijk
+            table0.row([i, j]).history.set(...) // [index1, index2, ...]
+            
+            for (int k = 0; k < l; ++k) {
+                if (...) {
+                    // operation 1
+                    table1.row([i, j, k]).globalIterator.set(globalIteratorController.next());
+                    
+                    // ...
+                    
+                }
+            }  
+        }
+    }
+}
+
+1. Валидация ошибок
+2. Описание актуальной грамматики
+3. Письменное описание работы таблиц
+4. Внимательно рассмотреть обработку операций присванивания
+
+For loop:
+  Initialization: intk=0
+  Condition: k<l
+  Increment: ++k
+  
+  <If statement 1>
+      <operation 1> 
+
+globalIteratorController = GlobalIteratorController(); // globalScheduleIndexController
+
+void my_for(ParentIteration parentIteration, ParserTreeNode forNode) {
+    // ForInitialization init
+    // ForCondition cond
+    // ForIncrement inc
+    
+    CustomIterator iterator = CustomIterator(parentIteration, forNode.init.value);
+    
+    for (; forNode.cond.func(iterator); iterator.next(forNode.inc.func)) {
+        for (ParserTreeNode child : forNode.children) {
+            if (child.isIfStatement) {
+                my_if(iterator.currentValue, child);
+            } else if (child.isForStatement) {
+                my_for(iterator.currentValue, child);
+            } else if (child.isOperation) {
+                my_operation(iterator.currentValue);
+            } 
+        }
+    }
+}
+
+void my_if(ParentIteration parentIteration, ParserTreeNode ifNode) {
+    // ...
+}
+
+void my_operation (ParentIteration parentIteration) {
+    
+    table0.row([i, j]).globalIterator.set(globalIteratorController.next());
+        
+    // operationNode -> как то определяем src
+    // a[i + j * k] // <- parentIteration.i, parentIteration.j, parentIteration.k
+    
+    table0.row([i, j]).src.set(...)     // table_n, ijk
+    table0.row([i, j]).history.set(...) // [index1, index2, ...]
+}
+
+
+// [08.03.2025] Ah shit, here we go again
+
+// ПОСЛЕДОВАТЕЛЬНО-ПАРАЛЛЕЛЬНЫЙ МЕТОД СУММИРОВАНИЯ (modified)
+
+int P = 3;
+int K = 2;
+
+double X[K * K];
+double S[P];
+double SUM;
+
+for (int i = 0; i < 100; i++)
+    X[i] = cos(i);
+
+
+for (int i = 0; i < P; i++) {
+    S[i] = X[K * i];
+    Y[i] = X[i * i];
+    p = X[i * K];
+
+    if (i < P - 1) { // i = 0, 1
+        for (int j = 1; j < K; j++) {
+            S[i] += X[K * i + j] + p;
+        }
+    } else { // i = 2
+        for (int j = 1; j < Q; j++) {
+            Y[i+j] += X[K * i + j] + S[i];
+        }
+
+}
+
+SUM = S[0];
+for (int i = 1; i < P; i++) {
+    SUM += S[i];
+}
+
+// константные значения:
+// i
+// sqrt(3)
+// cos(i)*sin(j)
+
+// зависимости:
+// X[...]
+
+
+cos(i)*sin(j)
+
+
+
+X[i] = cos(i)*sin(j);
+
+table (0)               X index                 
+schedule_index(X)  i    0  1  2 ...   src(table_n, ij)
+0                  0    c             input      
+1                  1       с          input 
+2                  2          с       input
+
+
+class Observer {
+    Map vars {var_name -> Schedule}     
+}
+                    
+class Schedule {
+    Src find_src(int var_element_index) {
+        ...
+    }
+    
+    Map _schedule { 0 -> table0, i0, 
+                    1 -> table1, i0,
+                    2 -> table0, i1,
+                    ... }
+}
+
+class Table {
+    
+}
+
+class Src {
+    int table_index;
+    int i;
+    int j;
+    int k;
+}
+
+
+S[i] = X[K * i];
+// размерность таблица зависит от размерности переменной слева от итератора присванивания
+// тело таблицы - значения индексных выражений в каждой [] справа от оператора
+
+table (1)               S index                 
+schedule_index(S)  i    0    1    2   src(table_n, ij)
+0                  0  K*i=0           src(0, i=0)      
+4                  1         2        src(0, i=2) ij на каком индексе таблицы(0) последний раз был изменён элемент X[i] с индексом i, который мы используем в операции справа
+8                  2              4   src(0, i=4)
+//значения ij из src мы забираем из таблицы table_n: по столбцу смотрим когда последний раз было изменение (по расписанию - важно!)
+// надо иметь возможность по расписанию обращаться к таблице
+                   
+Y[i] = X[i * i];
+// лезем в последнюю таблицу переменной X
+table (2)               Y index                 
+schedule_index(Y)  i    0    1    2   src(table_n, ij)
+0                  0  i*i=0           src(0, i=0)     
+4                  1         1        src(0, i=1)
+8                  2              4   src(0, i=4)
+                      
+p = X[i * K];  
+table (3)               p index                 
+schedule_index(p)  i    0         src(table_n, ij)
+0                  0  i*K=0       src(0, i=0)      
+1                  1    2         src(0, i=2) 
+2                  2    4         src(0, i=4)
+                   
+S[i] += X[K * i + j] + p;
+//есть текстуальный предобработчик
+//define N 5 -> подставляешь вместо N 5
+//развернуть += -=
+S[i] = S[i] + X[K * i + j] + p
+
+//# делаем schedule_index --, лезем в таблицу, где это sched_idx значение лежит
+//# смотрим в таблице, изменялась ли переменная по собственному индексу
+//# если да, то это src, то продолжаем schedule_index --
+
+//константные значения определяем по отсутствию их в мапе изменяемых значений
+//мапа изменяемых знавчений состоит из переменных слева от оператора присваивания
+
+//int s[]
+ 
+//for (int j = 1; j < K; j++) {
+//    for (int j1 = 1; j < K; j++) {
+//        for (int j2 = 1; j < K; j++) {
+//            for (int j3 = 1; j < K; j++) {
+//                for (int j4 = 1; j < K; j++) {
+//                s[j] = x[j+j1+j2+j3+j4];
+//                }
+//            }
+//        }
+//    }
+//}
+
+//s[1] = x[1];
+
+//S[i] += X[K * i + 1] + p;
+//S[i] += X[K * i + 2] + p;
+//S[i] += X[K * i + 3] + p;
+
+S[i] = S[i] + X[K * i + j] + p
+
+table (4)               S index                 
+schedule_index(S)  ij   0        1    2   src(table_n, ij)
+1                  00   0+0+0             src(1, 0) + src(0, 0) + src(3, 0)    
+2                  01   0+1+0             src(4, 00) + src(0, 1) + src(3, 0)
+3                  02   0+2+0             src(4, 01) + src(0, 2) + src(3, 0)
+5                  10          1+2+0      src(1, 1) + src(0, 2) + src(3, 0)
+6                  11          1+3+0      src(4, 10) + src(0, 3) + src(3, 0)
+7                  12          1+4+0      src(4, 11) + src(0, 4) + src(3, 0)
+9                  20                     -
+10                 21                     -
+11                 22                     -
+                   
+
+Y[i+j] += X[K * i + j] + S[i];
+Y[i+j] = Y[i+j] + S[i] + X[K * i + j] 
+
+table (5)               Y index                 
+schedule_index(Y)  ij    0    1    2    3    4       src(table_n, ij)
+
+1                  00                                - (не было из-за if else)   
+2                  01                                - 
+3                  02                                -
+5                  10                                -
+6                  11                                -
+7                  12                                -
+9                  20             2+2+4              src(2, i=2) (найдено по стб i+j = 2 при schedule_idx--) 
+                                                     + src(1, i=2) (т. к. при выполнении schedule_idx-- мы лезем в таблицу 4, но по индексу 2 (столбцу 2) изменений нет и в итоге мы доходим до таблицы 1 где schedule_idx = 8)
+                                                     + src(0, i=4)
+
+10                 21                 3+2+5          const (т к Y[3] никогда не менялся и не инициализировался)
+                                                     + src(1, i=2) + src(0, i=5)
+11                 22                       4+2+6    const + src(1, i=2) + src(0, i=6)
+
+//для каждой операции выделять таблицу в соответствием со вложенностью            
+//#каждая таблица соответствует оператору присваивания
+//#каждая таблица хранит расписание изменения одной переменнтой в рамках ожной операции //, с которой ассоциируется             
+             
+// var - переменная / массив для отслеживания 
+    // schedule_index(var) - расписание изменений этой переменной
+        // table(table_n) - таблицы для каждой операции с этой переменгной и общим schedule_index(var) 
+
+class Observer {
+    Map vars {var_name -> Schedule}     
+}
+                    
+class Schedule {
+    Src find_src(int var_element_index) {
+        ...
+    }
+    
+    Map _schedule { 0 -> table0, i0, 
+                    1 -> table1, i0,
+                    2 -> table0, i1,
+                    ... }
+}
+
+class Table {
+    Row rows[];
+}
+
+class TableRow {
+    int schedule_index;
+    int iterators[];
+    int var_indices[];
+    int schedule_index;
+    int schedule_index;
+}
+
+class Src {
+    int table_index;
+    int i;
+    int j;
+    int k;
+}
+
+Составлю план разработки:
+
+Вопросы:
+    Предобработка кода:
+        1. Разврертки операций += -= /= *=
+        vec_out[i] += matrix[i][j] * vec_in[j];
+        vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+        2. Зависимость одинаковых переменных с одинаковыми индексами?
+        vec_out[i] = vec_out[i] + matrix[i][j] * vec_in[j];
+        src = i, j-1
+        vec_out[i] = vec_out[i - 1] + matrix[i][j] * vec_in[j];
+        src = i-1, j
+    Составление таблицы:
+        1. Если я преподношу систему, как систему, обрабатывающую только фрагмент кода на Си,
+        есть вероятность, что фрагмент инициализации массива будет в отдельной функции, которую
+        пользователь не захочет скопировать. Лучше уметь обрабатывать код, не зная размеров массива.
+        Это также позволить допустить динамические массивы: их объявление и работу с ними. Допустим, можно
+        разрешить индексирование только через [], но допустить всякие malloc calloc resize.
+
+Предподготовка:
+1. Найти побольше примеров алгоритмов, чтобы собрать минимальный пулл конструкций на Си 
+2. Посидеть с гпт проверить файл грамматики и дополнить его
+3. Перегенерировать парсер
+*4. Поискать статьи про анализ функций в статическом анализе
+5. Разобраться как работает таблица:
+    5.1 Собрать примеры составленных таблиц +
+    5.2 Попробовать составить таблицу самостоятельно для 3ёх примеров
+    5.3 Составить список неточностей и попробовать их решить
+    5.4 Составить письменное описание таблицы
+    5.5 Написать класс хранения таблицы
+6. Продумать осуществление предобратки операций
+
+Реализация:
+
+
+
+
+
+

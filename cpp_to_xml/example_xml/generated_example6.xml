@@ -1,0 +1,34 @@
+<algo>
+  <block id = "3" dims = "1">
+    <arg name = "i" val = "0..3"></arg>
+
+    <block id = "4" dims = "0">
+      <vertex condition = "i == 0" type = "1"></vertex>
+      <vertex condition = "i == 1" type = "1">
+        <in bsrc = "3::5" src = "0"></in>
+      </vertex>
+      <vertex condition = "i == 2" type = "1">
+        <in bsrc = "3::5" src = "1"></in>
+      </vertex>
+      <vertex condition = "i == 3" type = "1">
+        <in bsrc = "3::5" src = "2"></in>
+      </vertex>
+    </block>
+
+    <block id = "5" dims = "0">
+      <vertex condition = "i == 0" type = "1">
+        <in bsrc = "3::4" src = "0"></in>
+      </vertex>
+      <vertex condition = "i == 1" type = "1">
+        <in bsrc = "3::4" src = "1"></in>
+      </vertex>
+      <vertex condition = "i == 2" type = "1">
+        <in bsrc = "3::4" src = "2"></in>
+      </vertex>
+      <vertex condition = "i == 3" type = "1">
+        <in bsrc = "3::4" src = "3"></in>
+      </vertex>
+    </block>
+
+  </block>
+</algo>
