@@ -47,6 +47,7 @@ class ArchitectJob:
 
             # Найдём xml конфиг соответствующего юзера и его папку для JSON-моделей
             graph_input_config_file = volume_user_task_dir + "/" + graph_name
+            graph_tmp_config_file = volume_user_task_dir + "/tmp.xml"
             graph_output_config_file = volume_user_page_models_dir + "/graphData.json"
             graph_input_config_last_file = volume_user_task_dir + "/last_input_config"
 
@@ -82,8 +83,26 @@ class ArchitectJob:
                 self._execute_architect(command)
 
             elif graph_input_config_type == "cpp":
+                
                 # todo:
-                shutil.copy(graph_input_config_file, graph_output_config_file)  # tmp
+        
+                architect2_script_file = cur_abs_path + "/cpp_to_xml/parser"
+                command = [
+                    architect2_script_file,
+                    graph_input_config_file,
+                    graph_tmp_config_file,
+                ]
+                self._execute_architect(command)
+
+                architect_script_file = cur_abs_path + "/architect/main"
+                command = [
+                    architect_script_file,
+                    graph_tmp_config_file,
+                    graph_output_config_file,
+                ]
+                self._execute_architect(command)
+
+                # shutil.copy(graph_input_config_file, graph_output_config_file)  # tmp
 
             else:
                 # todo:
