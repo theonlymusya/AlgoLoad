@@ -1,5 +1,6 @@
 #pragma once
-#include "string"
+#include <string>
+#include <vector>
 
 // кстати оно нам по моему даже не нужно, всё цифрами писать планируется
 // Представляет <arg name=... val=... />

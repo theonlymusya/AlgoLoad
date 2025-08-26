@@ -1,5 +1,6 @@
 #include "Tables.hpp"
 #include <iostream>
+#include <algorithm>
 
 bool Observer::hasTableForAssignment(int id) const {
     return AssignmentId_Table.count(id) > 0;
